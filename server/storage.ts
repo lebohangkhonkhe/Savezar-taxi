@@ -1,5 +1,7 @@
 import { type User, type InsertUser, type Driver, type InsertDriver, type Taxi, type InsertTaxi, type TaxiStats, type InsertTaxiStats } from "@shared/schema";
-import { randomUUID } from "crypto";
+import { users, drivers, taxis, taxiStats } from "@shared/schema";
+import { db } from "./db";
+import { eq } from "drizzle-orm";
 
 export interface IStorage {
   // User methods
@@ -28,132 +30,136 @@ export interface IStorage {
   updateTaxiStats(taxiId: string, updates: Partial<InsertTaxiStats>): Promise<TaxiStats | undefined>;
 }
 
-export class MemStorage implements IStorage {
-  private users: Map<string, User>;
-  private drivers: Map<string, Driver>;
-  private taxis: Map<string, Taxi>;
-  private taxiStats: Map<string, TaxiStats>;
+export class DatabaseStorage implements IStorage {
+  // Initialize sample data on first run
+  private initialized = false;
 
-  constructor() {
-    this.users = new Map();
-    this.drivers = new Map();
-    this.taxis = new Map();
-    this.taxiStats = new Map();
-    
-    // Initialize with sample data
-    this.initializeSampleData();
-  }
+  private async ensureInitialized() {
+    if (this.initialized) return;
 
-  private async initializeSampleData() {
-    // Create sample user
-    const user = await this.createUser({
-      email: "admin@savezar.com",
-      password: "password",
-      name: "SaveZar Admin"
-    });
+    try {
+      // Check if data already exists
+      const existingUsers = await db.select().from(users).limit(1);
+      if (existingUsers.length > 0) {
+        this.initialized = true;
+        return;
+      }
 
-    // Create sample taxi
-    const taxi1 = await this.createTaxi({
-      name: "Taxi 1",
-      licensePlate: "LAG-001-XX",
-      currentLatitude: 6.5244,
-      currentLongitude: 3.3792,
-      currentLocation: "Akina Jola St, Victoria Island",
-      isOnline: true
-    });
+      // Create sample data if none exists
+      console.log("Initializing sample data...");
+      
+      // Create sample user
+      const [user] = await db.insert(users).values({
+        email: "admin@savezar.com",
+        password: "password",
+        name: "SaveZar Admin"
+      }).returning();
 
-    // Create sample driver
-    const driver1 = await this.createDriver({
-      name: "Tshepo Trust",
-      age: 36,
-      phone: "+234-801-234-5678",
-      rating: 4.2,
-      avgPassengersPerDay: 235,
-      photoUrl: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop&crop=face",
-      taxiId: taxi1.id,
-      isActive: true
-    });
+      // Create sample taxi
+      const [taxi1] = await db.insert(taxis).values({
+        name: "Taxi 1",
+        licensePlate: "LAG-001-XX",
+        currentLatitude: 6.5244,
+        currentLongitude: 3.3792,
+        currentLocation: "Akina Jola St, Victoria Island",
+        isOnline: true
+      }).returning();
 
-    // Update taxi with driver
-    await this.updateTaxi(taxi1.id, { driverId: driver1.id });
+      // Create sample driver
+      const [driver1] = await db.insert(drivers).values({
+        name: "Tshepo Trust",
+        age: 36,
+        phone: "+234-801-234-5678",
+        rating: 4.2,
+        avgPassengersPerDay: 235,
+        photoUrl: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop&crop=face",
+        taxiId: taxi1.id,
+        isActive: true
+      }).returning();
 
-    // Create sample stats
-    await this.createTaxiStats({
-      taxiId: taxi1.id,
-      passengersToday: 140,
-      kilometersToday: 146.5,
-      totalEarnings: 28500
-    });
+      // Update taxi with driver
+      await db.update(taxis).set({ driverId: driver1.id }).where(eq(taxis.id, taxi1.id));
+
+      // Create sample stats
+      await db.insert(taxiStats).values({
+        taxiId: taxi1.id,
+        passengersToday: 140,
+        kilometersToday: 146.5,
+        totalEarnings: 28500
+      });
+
+      console.log("Sample data initialized successfully");
+      this.initialized = true;
+    } catch (error) {
+      console.error("Error initializing sample data:", error);
+      this.initialized = true; // Don't keep retrying
+    }
   }
 
   // User methods
   async getUser(id: string): Promise<User | undefined> {
-    return this.users.get(id);
+    await this.ensureInitialized();
+    const [user] = await db.select().from(users).where(eq(users.id, id));
+    return user || undefined;
   }
 
   async getUserByEmail(email: string): Promise<User | undefined> {
-    return Array.from(this.users.values()).find(user => user.email === email);
+    await this.ensureInitialized();
+    const [user] = await db.select().from(users).where(eq(users.email, email));
+    return user || undefined;
   }
 
   async createUser(insertUser: InsertUser): Promise<User> {
-    const id = randomUUID();
-    const user: User = { 
-      ...insertUser, 
-      id,
-      createdAt: new Date()
-    };
-    this.users.set(id, user);
+    await this.ensureInitialized();
+    const [user] = await db.insert(users).values(insertUser).returning();
     return user;
   }
 
   // Driver methods
   async getDriver(id: string): Promise<Driver | undefined> {
-    return this.drivers.get(id);
+    await this.ensureInitialized();
+    const [driver] = await db.select().from(drivers).where(eq(drivers.id, id));
+    return driver || undefined;
   }
 
   async getDriverByTaxiId(taxiId: string): Promise<Driver | undefined> {
-    return Array.from(this.drivers.values()).find(driver => driver.taxiId === taxiId);
+    await this.ensureInitialized();
+    const [driver] = await db.select().from(drivers).where(eq(drivers.taxiId, taxiId));
+    return driver || undefined;
   }
 
   async getAllDrivers(): Promise<Driver[]> {
-    return Array.from(this.drivers.values());
+    await this.ensureInitialized();
+    return await db.select().from(drivers);
   }
 
   async createDriver(insertDriver: InsertDriver): Promise<Driver> {
-    const id = randomUUID();
-    const driver: Driver = { 
-      ...insertDriver, 
-      id,
-      rating: insertDriver.rating ?? 0,
-      avgPassengersPerDay: insertDriver.avgPassengersPerDay ?? 0,
-      photoUrl: insertDriver.photoUrl ?? null,
-      isActive: insertDriver.isActive ?? true
-    };
-    this.drivers.set(id, driver);
+    await this.ensureInitialized();
+    const [driver] = await db.insert(drivers).values(insertDriver).returning();
     return driver;
   }
 
   async updateDriver(id: string, updates: Partial<InsertDriver>): Promise<Driver | undefined> {
-    const driver = this.drivers.get(id);
-    if (driver) {
-      const updatedDriver = { ...driver, ...updates };
-      this.drivers.set(id, updatedDriver);
-      return updatedDriver;
-    }
-    return undefined;
+    await this.ensureInitialized();
+    const [driver] = await db.update(drivers).set(updates).where(eq(drivers.id, id)).returning();
+    return driver || undefined;
   }
 
   // Taxi methods
   async getTaxi(id: string): Promise<Taxi | undefined> {
-    return this.taxis.get(id);
+    await this.ensureInitialized();
+    const [taxi] = await db.select().from(taxis).where(eq(taxis.id, id));
+    return taxi || undefined;
   }
 
   async getAllTaxis(): Promise<Taxi[]> {
-    return Array.from(this.taxis.values());
+    await this.ensureInitialized();
+    return await db.select().from(taxis);
   }
 
   async getTaxiWithDriver(id: string): Promise<(Taxi & { driver?: Driver }) | undefined> {
-    const taxi = this.taxis.get(id);
+    await this.ensureInitialized();
+    const [taxi] = await db.select().from(taxis).where(eq(taxis.id, id));
     if (!taxi) return undefined;
 
     const driver = taxi.driverId ? await this.getDriver(taxi.driverId) : undefined;
@@ -161,62 +167,40 @@ export class MemStorage implements IStorage {
   }
 
   async createTaxi(insertTaxi: InsertTaxi): Promise<Taxi> {
-    const id = randomUUID();
-    const taxi: Taxi = { 
-      ...insertTaxi, 
-      id,
-      driverId: insertTaxi.driverId ?? null,
-      currentLatitude: insertTaxi.currentLatitude ?? null,
-      currentLongitude: insertTaxi.currentLongitude ?? null,
-      currentLocation: insertTaxi.currentLocation ?? null,
-      isOnline: insertTaxi.isOnline ?? false
-    };
-    this.taxis.set(id, taxi);
+    await this.ensureInitialized();
+    const [taxi] = await db.insert(taxis).values(insertTaxi).returning();
     return taxi;
   }
 
   async updateTaxi(id: string, updates: Partial<InsertTaxi>): Promise<Taxi | undefined> {
-    const taxi = this.taxis.get(id);
-    if (taxi) {
-      const updatedTaxi = { ...taxi, ...updates };
-      this.taxis.set(id, updatedTaxi);
-      return updatedTaxi;
-    }
-    return undefined;
+    await this.ensureInitialized();
+    const [taxi] = await db.update(taxis).set(updates).where(eq(taxis.id, id)).returning();
+    return taxi || undefined;
   }
 
   // Taxi Stats methods
   async getTaxiStats(taxiId: string): Promise<TaxiStats | undefined> {
-    return Array.from(this.taxiStats.values()).find(stats => stats.taxiId === taxiId);
+    await this.ensureInitialized();
+    const [stats] = await db.select().from(taxiStats).where(eq(taxiStats.taxiId, taxiId));
+    return stats || undefined;
   }
 
   async getAllTaxiStats(): Promise<TaxiStats[]> {
-    return Array.from(this.taxiStats.values());
+    await this.ensureInitialized();
+    return await db.select().from(taxiStats);
   }
 
   async createTaxiStats(insertStats: InsertTaxiStats): Promise<TaxiStats> {
-    const id = randomUUID();
-    const stats: TaxiStats = { 
-      ...insertStats, 
-      id,
-      date: new Date(),
-      passengersToday: insertStats.passengersToday ?? 0,
-      kilometersToday: insertStats.kilometersToday ?? 0,
-      totalEarnings: insertStats.totalEarnings ?? 0
-    };
-    this.taxiStats.set(id, stats);
+    await this.ensureInitialized();
+    const [stats] = await db.insert(taxiStats).values(insertStats).returning();
     return stats;
   }
 
   async updateTaxiStats(taxiId: string, updates: Partial<InsertTaxiStats>): Promise<TaxiStats | undefined> {
-    const existingStats = await this.getTaxiStats(taxiId);
-    if (existingStats) {
-      const updatedStats = { ...existingStats, ...updates };
-      this.taxiStats.set(existingStats.id, updatedStats);
-      return updatedStats;
-    }
-    return undefined;
+    await this.ensureInitialized();
+    const [stats] = await db.update(taxiStats).set(updates).where(eq(taxiStats.taxiId, taxiId)).returning();
+    return stats || undefined;
   }
 }
 
-export const storage = new MemStorage();
+export const storage = new DatabaseStorage();
