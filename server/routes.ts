@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { loginSchema, insertTaxiStatsSchema } from "@shared/schema";
+import { loginSchema, insertTaxiStatsSchema, insertRecordingSchema } from "@shared/schema";
 import session from "express-session";
 
 // Extend session type to include userId
@@ -192,6 +192,63 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(updatedStats);
     } catch (error) {
       res.status(500).json({ message: "Failed to update taxi statistics" });
+    }
+  });
+
+  // Recording routes
+  app.get("/api/recordings", requireAuth, async (req, res) => {
+    try {
+      const recordings = await storage.getAllRecordings();
+      res.json(recordings);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch recordings" });
+    }
+  });
+
+  app.get("/api/recordings/taxi/:taxiId", requireAuth, async (req, res) => {
+    try {
+      const recordings = await storage.getRecordingsByTaxiId(req.params.taxiId);
+      res.json(recordings);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch recordings for taxi" });
+    }
+  });
+
+  app.post("/api/recordings", requireAuth, async (req, res) => {
+    try {
+      const validation = insertRecordingSchema.safeParse(req.body);
+      if (!validation.success) {
+        return res.status(400).json({ message: "Invalid recording data", errors: validation.error.errors });
+      }
+
+      const recording = await storage.createRecording(validation.data);
+      res.status(201).json(recording);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to create recording" });
+    }
+  });
+
+  app.get("/api/recordings/:id", requireAuth, async (req, res) => {
+    try {
+      const recording = await storage.getRecording(req.params.id);
+      if (!recording) {
+        return res.status(404).json({ message: "Recording not found" });
+      }
+      res.json(recording);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch recording" });
+    }
+  });
+
+  app.delete("/api/recordings/:id", requireAuth, async (req, res) => {
+    try {
+      const success = await storage.deleteRecording(req.params.id);
+      if (!success) {
+        return res.status(404).json({ message: "Recording not found" });
+      }
+      res.json({ message: "Recording deleted successfully" });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to delete recording" });
     }
   });
 

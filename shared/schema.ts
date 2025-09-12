@@ -45,6 +45,18 @@ export const taxiStats = pgTable("taxi_stats", {
   totalEarnings: real("total_earnings").notNull().default(0),
 });
 
+export const recordings = pgTable("recordings", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  taxiId: varchar("taxi_id").notNull(),
+  filename: text("filename").notNull(),
+  duration: integer("duration"), // in seconds
+  fileSize: integer("file_size"), // in bytes
+  mimeType: text("mime_type").notNull().default("video/webm"),
+  recordedAt: timestamp("recorded_at").defaultNow(),
+  title: text("title"),
+  isProcessed: boolean("is_processed").notNull().default(false),
+});
+
 export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
   createdAt: true,
@@ -63,6 +75,11 @@ export const insertTaxiStatsSchema = createInsertSchema(taxiStats).omit({
   date: true,
 });
 
+export const insertRecordingSchema = createInsertSchema(recordings).omit({
+  id: true,
+  recordedAt: true,
+});
+
 export const loginSchema = z.object({
   email: z.string().email(),
   password: z.string().min(1),
@@ -72,9 +89,11 @@ export type InsertUser = z.infer<typeof insertUserSchema>;
 export type InsertDriver = z.infer<typeof insertDriverSchema>;
 export type InsertTaxi = z.infer<typeof insertTaxiSchema>;
 export type InsertTaxiStats = z.infer<typeof insertTaxiStatsSchema>;
+export type InsertRecording = z.infer<typeof insertRecordingSchema>;
 export type LoginRequest = z.infer<typeof loginSchema>;
 
 export type User = typeof users.$inferSelect;
 export type Driver = typeof drivers.$inferSelect;
 export type Taxi = typeof taxis.$inferSelect;
 export type TaxiStats = typeof taxiStats.$inferSelect;
+export type Recording = typeof recordings.$inferSelect;

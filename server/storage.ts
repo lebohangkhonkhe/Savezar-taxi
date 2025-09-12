@@ -1,5 +1,5 @@
-import { type User, type InsertUser, type Driver, type InsertDriver, type Taxi, type InsertTaxi, type TaxiStats, type InsertTaxiStats } from "@shared/schema";
-import { users, drivers, taxis, taxiStats } from "@shared/schema";
+import { type User, type InsertUser, type Driver, type InsertDriver, type Taxi, type InsertTaxi, type TaxiStats, type InsertTaxiStats, type Recording, type InsertRecording } from "@shared/schema";
+import { users, drivers, taxis, taxiStats, recordings } from "@shared/schema";
 import { db } from "./db";
 import { eq } from "drizzle-orm";
 
@@ -28,6 +28,14 @@ export interface IStorage {
   getAllTaxiStats(): Promise<TaxiStats[]>;
   createTaxiStats(stats: InsertTaxiStats): Promise<TaxiStats>;
   updateTaxiStats(taxiId: string, updates: Partial<InsertTaxiStats>): Promise<TaxiStats | undefined>;
+
+  // Recording methods
+  getRecording(id: string): Promise<Recording | undefined>;
+  getRecordingsByTaxiId(taxiId: string): Promise<Recording[]>;
+  getAllRecordings(): Promise<Recording[]>;
+  createRecording(recording: InsertRecording): Promise<Recording>;
+  updateRecording(id: string, updates: Partial<InsertRecording>): Promise<Recording | undefined>;
+  deleteRecording(id: string): Promise<boolean>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -202,6 +210,41 @@ export class DatabaseStorage implements IStorage {
     await this.ensureInitialized();
     const [stats] = await db.update(taxiStats).set(updates).where(eq(taxiStats.taxiId, taxiId)).returning();
     return stats || undefined;
+  }
+
+  // Recording methods
+  async getRecording(id: string): Promise<Recording | undefined> {
+    await this.ensureInitialized();
+    const [recording] = await db.select().from(recordings).where(eq(recordings.id, id));
+    return recording || undefined;
+  }
+
+  async getRecordingsByTaxiId(taxiId: string): Promise<Recording[]> {
+    await this.ensureInitialized();
+    return await db.select().from(recordings).where(eq(recordings.taxiId, taxiId));
+  }
+
+  async getAllRecordings(): Promise<Recording[]> {
+    await this.ensureInitialized();
+    return await db.select().from(recordings);
+  }
+
+  async createRecording(insertRecording: InsertRecording): Promise<Recording> {
+    await this.ensureInitialized();
+    const [recording] = await db.insert(recordings).values(insertRecording).returning();
+    return recording;
+  }
+
+  async updateRecording(id: string, updates: Partial<InsertRecording>): Promise<Recording | undefined> {
+    await this.ensureInitialized();
+    const [recording] = await db.update(recordings).set(updates).where(eq(recordings.id, id)).returning();
+    return recording || undefined;
+  }
+
+  async deleteRecording(id: string): Promise<boolean> {
+    await this.ensureInitialized();
+    const [deleted] = await db.delete(recordings).where(eq(recordings.id, id)).returning();
+    return !!deleted;
   }
 }
 

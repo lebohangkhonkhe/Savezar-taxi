@@ -1,11 +1,12 @@
 import { useState, useRef, useEffect } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import Header from "@/components/Header";
 import Navigation from "@/components/Navigation";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import type { Taxi, Driver } from "@shared/schema";
+import { apiRequest, queryClient } from "@/lib/queryClient";
+import type { Taxi, Driver, Recording } from "@shared/schema";
 
 export default function Broadcast() {
   const [isLive, setIsLive] = useState(false);
@@ -15,6 +16,7 @@ export default function Broadcast() {
   const [recordedChunks, setRecordedChunks] = useState<Blob[]>([]);
   const [autoStartRecording, setAutoStartRecording] = useState(false);
   const [audioRecording, setAudioRecording] = useState(true);
+  const [recordingStartTime, setRecordingStartTime] = useState<Date | null>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
 
@@ -29,6 +31,29 @@ export default function Broadcast() {
   const { data: driver, isLoading: driverLoading } = useQuery<Driver>({
     queryKey: ['/api/drivers/taxi', currentTaxiId],
     enabled: !!currentTaxiId,
+  });
+
+  const { data: recordings, isLoading: recordingsLoading } = useQuery<Recording[]>({
+    queryKey: ['/api/recordings/taxi', currentTaxiId],
+    enabled: !!currentTaxiId,
+  });
+
+  const createRecordingMutation = useMutation({
+    mutationFn: async (recordingData: { 
+      taxiId: string; 
+      filename: string; 
+      duration?: number; 
+      fileSize?: number; 
+      title?: string;
+      mimeType?: string;
+    }) => {
+      const response = await apiRequest('POST', '/api/recordings', recordingData);
+      return await response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/recordings'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/recordings/taxi', currentTaxiId] });
+    }
   });
 
   const handleToggleRecording = async () => {
@@ -75,12 +100,32 @@ export default function Broadcast() {
           }
         };
         
-        mediaRecorder.onstop = () => {
+        mediaRecorder.onstop = async () => {
           setRecordedChunks(chunks);
-          // You can save the recording here
-          const blob = new Blob(chunks, { type: 'video/webm' });
+          const blob = new Blob(chunks, { type: mimeType });
           const url = URL.createObjectURL(blob);
-          console.log('Recording saved:', url);
+          console.log('Recording saved locally:', url);
+          
+          // Save recording metadata to database
+          if (currentTaxiId && recordingStartTime) {
+            const duration = Math.floor((Date.now() - recordingStartTime.getTime()) / 1000);
+            const currentTime = new Date();
+            const filename = `recording_${currentTime.getTime()}.webm`;
+            
+            try {
+              await createRecordingMutation.mutateAsync({
+                taxiId: currentTaxiId,
+                filename: filename,
+                duration: duration,
+                fileSize: blob.size,
+                mimeType: mimeType,
+                title: `${activeTaxi?.name || 'Taxi'} Recording - ${currentTime.toLocaleString()}`
+              });
+              console.log('Recording metadata saved to database');
+            } catch (error) {
+              console.error('Error saving recording metadata:', error);
+            }
+          }
         };
         
         mediaRecorderRef.current = mediaRecorder;
@@ -89,6 +134,7 @@ export default function Broadcast() {
         console.log('Setting recording state to true');
         setIsRecording(true);
         setIsLive(true);
+        setRecordingStartTime(new Date());
         
         console.log('Recording started successfully');
         
@@ -329,26 +375,30 @@ export default function Broadcast() {
             <div className="bg-gray-800 rounded-lg p-4">
               <h3 className="text-white font-semibold mb-3">Recent Recordings</h3>
               <div className="space-y-2">
-                <div className="flex items-center justify-between py-2 border-b border-gray-700">
-                  <div>
-                    <p className="text-white">Today 14:30 - Taxi 1</p>
-                    <p className="text-gray-400 text-sm">Duration: 45 min</p>
+                {recordingsLoading ? (
+                  <div className="text-gray-400 text-center py-4">Loading recordings...</div>
+                ) : recordings && recordings.length > 0 ? (
+                  recordings.map((recording) => (
+                    <div key={recording.id} className="flex items-center justify-between py-2 border-b border-gray-700">
+                      <div>
+                        <p className="text-white">{recording.title || recording.filename}</p>
+                        <p className="text-gray-400 text-sm">
+                          Duration: {recording.duration ? `${Math.floor(recording.duration / 60)}:${(recording.duration % 60).toString().padStart(2, '0')}` : 'Unknown'} | 
+                          Size: {recording.fileSize ? `${(recording.fileSize / 1024 / 1024).toFixed(1)} MB` : 'Unknown'} |
+                          {recording.recordedAt ? new Date(recording.recordedAt).toLocaleDateString() : 'Unknown date'}
+                        </p>
+                      </div>
+                      <Button size="sm" className="bg-primary hover:bg-primary/90" data-testid={`button-play-recording-${recording.id}`}>
+                        <i className="fas fa-play mr-2"></i>
+                        Play
+                      </Button>
+                    </div>
+                  ))
+                ) : (
+                  <div className="text-gray-400 text-center py-6">
+                    No recordings found for this taxi
                   </div>
-                  <Button size="sm" className="bg-primary hover:bg-primary/90">
-                    <i className="fas fa-play mr-2"></i>
-                    Play
-                  </Button>
-                </div>
-                <div className="flex items-center justify-between py-2 border-b border-gray-700">
-                  <div>
-                    <p className="text-white">Today 12:15 - Taxi 2</p>
-                    <p className="text-gray-400 text-sm">Duration: 32 min</p>
-                  </div>
-                  <Button size="sm" className="bg-primary hover:bg-primary/90">
-                    <i className="fas fa-play mr-2"></i>
-                    Play
-                  </Button>
-                </div>
+                )}
               </div>
             </div>
           </TabsContent>
