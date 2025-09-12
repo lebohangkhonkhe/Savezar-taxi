@@ -159,7 +159,7 @@ export default function Broadcast() {
 
   if (!currentTaxiId && !taxisLoading) {
     return (
-      <div className="h-full flex flex-col">
+      <div className="h-full flex flex-col pb-16">
         <Header title="BROADCAST" />
         <div className="flex-1 flex items-center justify-center bg-gray-900">
           <div className="text-center text-white" data-testid="empty-state-no-broadcast">
@@ -396,8 +396,8 @@ export default function Broadcast() {
         </Tabs>
       </div>
       
-      {/* Sticky Main Navigation */}
-      <div className="sticky bottom-0 z-20">
+      {/* Fixed Main Navigation */}
+      <div className="fixed bottom-0 left-0 right-0 z-20">
         <Navigation />
       </div>
     </div>

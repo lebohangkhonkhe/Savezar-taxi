@@ -93,7 +93,7 @@ export default function Location() {
   }, [userLocation, locationError, isLocationLoading]);
 
   return (
-    <div className="h-full flex flex-col">
+    <div className="h-full flex flex-col pb-16">
       <Header title="TAXI LOCATION" />
       
       {isLoading ? (
@@ -199,8 +199,8 @@ export default function Location() {
         </div>
       )}
       
-      {/* Sticky Main Navigation */}
-      <div className="sticky bottom-0 z-20">
+      {/* Fixed Main Navigation */}
+      <div className="fixed bottom-0 left-0 right-0 z-20">
         <Navigation />
       </div>
     </div>
