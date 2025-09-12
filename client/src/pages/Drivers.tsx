@@ -59,7 +59,7 @@ export default function Drivers() {
     return (
       <div className="h-full flex flex-col">
         <Header title="DRIVERS" />
-        <div className="flex-1 flex items-center justify-center bg-white">
+        <div className="flex-1 flex items-center justify-center bg-gray-900">
           <div className="text-center" data-testid="empty-state-no-drivers">
             <i className="fas fa-users text-4xl text-muted-foreground mb-4"></i>
             <h3 className="text-lg font-semibold text-foreground mb-2">No Drivers Available</h3>
@@ -85,11 +85,11 @@ export default function Drivers() {
         ) : currentDriver ? (
           <>
             {/* Driver Selection */}
-            <div className="bg-white border-b border-border px-4 py-3">
+            <div className="bg-gray-800 border-b border-gray-700 px-4 py-3">
               <div className="flex items-center justify-between">
                 <div className="flex items-center">
                   <div className="w-3 h-3 bg-primary rounded-full mr-3"></div>
-                  <h3 className="font-semibold text-foreground" data-testid="text-selected-driver">
+                  <h3 className="font-semibold text-white" data-testid="text-selected-driver">
                     Driver {(drivers?.findIndex(d => d.id === currentDriverId) || 0) + 1}: {currentDriver.name}
                   </h3>
                 </div>
@@ -148,18 +148,18 @@ export default function Drivers() {
             </div>
             
             {/* Driver Information */}
-            <div className="bg-white p-6">
+            <div className="bg-gray-900 p-6">
               <div className="text-center mb-6">
-                <h2 className="text-xl font-bold text-foreground mb-1" data-testid="text-driver-name">
+                <h2 className="text-xl font-bold text-white mb-1" data-testid="text-driver-name">
                   NAME: {currentDriver.name}
                 </h2>
-                <p className="text-lg text-muted-foreground" data-testid="text-driver-age">
+                <p className="text-lg text-gray-400" data-testid="text-driver-age">
                   AGE: {currentDriver.age}
                 </p>
               </div>
               
               <div className="text-center mb-6">
-                <p className="text-sm font-medium text-muted-foreground mb-2">AVERAGE PASSENGERS PER DAY:</p>
+                <p className="text-sm font-medium text-gray-400 mb-2">AVERAGE PASSENGERS PER DAY:</p>
                 <p className="text-3xl font-bold text-primary" data-testid="stat-avg-passengers">
                   {currentDriver.avgPassengersPerDay}
                 </p>
@@ -167,11 +167,11 @@ export default function Drivers() {
               
               {/* Driver Rating */}
               <div className="text-center mb-6">
-                <p className="text-sm font-medium text-muted-foreground mb-2">DRIVER RATING</p>
+                <p className="text-sm font-medium text-gray-400 mb-2">DRIVER RATING</p>
                 <div className="flex justify-center space-x-1" data-testid="rating-stars">
                   {renderStars(currentDriver.rating)}
                 </div>
-                <p className="text-sm text-muted-foreground mt-1">
+                <p className="text-sm text-gray-400 mt-1">
                   {currentDriver.rating.toFixed(1)} out of 5
                 </p>
               </div>
@@ -196,11 +196,11 @@ export default function Drivers() {
             </div>
           </>
         ) : (
-          <div className="flex-1 flex items-center justify-center bg-white">
+          <div className="flex-1 flex items-center justify-center bg-gray-900">
             <div className="text-center" data-testid="empty-state-driver-not-found">
               <i className="fas fa-user-slash text-4xl text-muted-foreground mb-4"></i>
-              <h3 className="text-lg font-semibold text-foreground mb-2">Driver Not Found</h3>
-              <p className="text-muted-foreground">The selected driver could not be found.</p>
+              <h3 className="text-lg font-semibold text-white mb-2">Driver Not Found</h3>
+              <p className="text-gray-400">The selected driver could not be found.</p>
             </div>
           </div>
         )}

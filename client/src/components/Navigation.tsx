@@ -11,7 +11,7 @@ export default function Navigation() {
   const [location] = useLocation();
 
   return (
-    <div className="bg-white border-t border-border px-4 py-2">
+    <div className="bg-gray-800 border-t border-gray-700 px-4 py-2">
       <div className="flex justify-around">
         {navigationItems.map(({ path, icon, label }) => {
           const isActive = location === path;
@@ -19,7 +19,7 @@ export default function Navigation() {
             <Link key={path} href={path}>
               <button 
                 className={`flex flex-col items-center py-2 ${
-                  isActive ? 'text-primary' : 'text-muted-foreground'
+                  isActive ? 'text-primary' : 'text-gray-400'
                 }`}
                 data-testid={`nav-${label.toLowerCase()}`}
               >

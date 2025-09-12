@@ -78,7 +78,7 @@
   box-shadow: 0 0 0 8px #1f2937, 0 0 0 12px #374151;
   border-radius: 2rem;
   overflow: hidden;
-  background: white;
+  background: #1f2937;
 }
 
 .status-bar {

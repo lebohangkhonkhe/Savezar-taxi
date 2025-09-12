@@ -27,7 +27,7 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center red-gradient">
+      <div className="min-h-screen flex items-center justify-center bg-gray-900">
         <div className="phone-container">
           <div className="status-bar">
             <div className="flex items-center space-x-1">
@@ -69,7 +69,7 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
 
 function Router() {
   return (
-    <div className="min-h-screen red-gradient">
+    <div className="min-h-screen bg-gray-900">
       <div className="phone-container">
         <div className="status-bar">
           <div className="flex items-center space-x-1">

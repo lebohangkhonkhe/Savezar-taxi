@@ -67,7 +67,7 @@ export default function Statistics() {
     return (
       <div className="h-full flex flex-col">
         <Header title="TAXI STATISTICS" />
-        <div className="flex-1 flex items-center justify-center bg-gray-50">
+        <div className="flex-1 flex items-center justify-center bg-gray-900">
           <div className="text-center" data-testid="empty-state-no-taxis">
             <i className="fas fa-chart-bar text-4xl text-muted-foreground mb-4"></i>
             <h3 className="text-lg font-semibold text-foreground mb-2">No Taxis Available</h3>
@@ -83,7 +83,7 @@ export default function Statistics() {
     <div className="h-full flex flex-col">
       <Header title="TAXI STATISTICS" />
       
-      <div className="flex-1 bg-gray-50 p-4">
+      <div className="flex-1 bg-gray-900 p-4">
         {isLoading ? (
           <div className="space-y-4">
             <Skeleton className="h-16 w-full" />
@@ -95,10 +95,10 @@ export default function Statistics() {
         ) : (
           <>
             {/* Taxi Selection */}
-            <div className="bg-white rounded-lg shadow-sm p-4 mb-4">
+            <div className="bg-gray-800 rounded-lg shadow-sm p-4 mb-4">
               <div className="flex items-center">
                 <div className="w-3 h-3 bg-primary rounded-full mr-3"></div>
-                <h3 className="font-semibold text-foreground" data-testid="text-selected-taxi">
+                <h3 className="font-semibold text-white" data-testid="text-selected-taxi">
                   Taxi 1
                 </h3>
               </div>
@@ -123,28 +123,28 @@ export default function Statistics() {
             {/* Statistics */}
             <div className="space-y-6">
               <div className="text-center">
-                <p className="text-sm font-medium text-muted-foreground mb-1">PASSENGERS TODAY</p>
+                <p className="text-sm font-medium text-gray-400 mb-1">PASSENGERS TODAY</p>
                 <p className="text-4xl font-bold text-primary" data-testid="stat-passengers">
                   {stats?.passengersToday || 0} passengers
                 </p>
               </div>
               
               <div className="text-center">
-                <p className="text-sm font-medium text-muted-foreground mb-1">DISTANCE TRAVELED</p>
+                <p className="text-sm font-medium text-gray-400 mb-1">DISTANCE TRAVELED</p>
                 <p className="text-4xl font-bold text-primary" data-testid="stat-distance">
                   {stats?.distanceTraveled?.toFixed(1) || 0} km
                 </p>
               </div>
               
               <div className="text-center">
-                <p className="text-sm font-medium text-muted-foreground mb-1">ROUTE EFFICIENCY</p>
+                <p className="text-sm font-medium text-gray-400 mb-1">ROUTE EFFICIENCY</p>
                 <p className="text-4xl font-bold text-primary" data-testid="stat-efficiency">
                   {stats?.routeEfficiency?.toFixed(1) || 0}%
                 </p>
               </div>
               
               <div className="text-center">
-                <p className="text-sm font-medium text-muted-foreground mb-1">FUEL CONSUMPTION</p>
+                <p className="text-sm font-medium text-gray-400 mb-1">FUEL CONSUMPTION</p>
                 <p className="text-4xl font-bold text-primary" data-testid="stat-fuel">
                   {stats?.fuelConsumption?.toFixed(1) || 0} L
                 </p>

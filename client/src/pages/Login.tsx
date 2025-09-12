@@ -66,7 +66,7 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen red-gradient">
+    <div className="min-h-screen bg-gray-900">
       <div className="phone-container">
         <div className="status-bar">
           <div className="flex items-center space-x-1">

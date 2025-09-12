@@ -16,7 +16,7 @@ export default function Header({ title, showMenu = true }: HeaderProps) {
   };
 
   return (
-    <div className="bg-white border-b border-border px-4 py-3 flex items-center">
+    <div className="bg-gray-800 border-b border-gray-700 px-4 py-3 flex items-center">
       {showMenu && (
         <Button
           variant="ghost"
@@ -25,10 +25,10 @@ export default function Header({ title, showMenu = true }: HeaderProps) {
           className="mr-4 p-0"
           data-testid="button-menu"
         >
-          <i className="fas fa-bars text-xl text-foreground"></i>
+          <i className="fas fa-bars text-xl text-white"></i>
         </Button>
       )}
-      <h1 className="text-xl font-bold text-foreground" data-testid="text-header-title">
+      <h1 className="text-xl font-bold text-white" data-testid="text-header-title">
         {title}
       </h1>
     </div>
