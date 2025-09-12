@@ -106,6 +106,7 @@ export default function Location() {
             latitude={userLocation?.lat || currentTaxi?.currentLatitude || undefined}
             longitude={userLocation?.lng || currentTaxi?.currentLongitude || undefined}
             location={userLocation ? `Your Current Location` : currentTaxi?.currentLocation || undefined}
+            showCoordinates={true}
           />
           
           {/* Location Status */}

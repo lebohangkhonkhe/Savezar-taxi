@@ -2,12 +2,14 @@ interface MapComponentProps {
   latitude?: number;
   longitude?: number;
   location?: string;
+  showCoordinates?: boolean;
 }
 
 export default function MapComponent({ 
   latitude = 6.5244, 
   longitude = 3.3792, 
-  location = "Akina Jola St" 
+  location = "Akina Jola St",
+  showCoordinates = true
 }: MapComponentProps) {
   return (
     <div className="flex-1 relative bg-gray-100">
@@ -21,7 +23,11 @@ export default function MapComponent({
             <h3 className="font-semibold text-foreground" data-testid="text-location">
               {location}
             </h3>
-            <p className="text-sm text-muted-foreground">Victoria Island, Lagos</p>
+            {showCoordinates && (
+              <p className="text-sm text-muted-foreground">
+                {latitude?.toFixed(4)}, {longitude?.toFixed(4)}
+              </p>
+            )}
           </div>
         </div>
       </div>

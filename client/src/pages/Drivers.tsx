@@ -73,7 +73,7 @@ export default function Drivers() {
   }
 
   return (
-    <div className="h-full flex flex-col">
+    <div className="h-full flex flex-col pb-16">
       <Header title="DRIVERS" />
       
       <div className="flex-1">
@@ -273,7 +273,10 @@ export default function Drivers() {
         </Tabs>
       </div>
       
-      <Navigation />
+      {/* Fixed Main Navigation */}
+      <div className="fixed bottom-0 left-0 right-0 z-20">
+        <Navigation />
+      </div>
     </div>
   );
 }

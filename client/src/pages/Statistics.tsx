@@ -81,7 +81,7 @@ export default function Statistics() {
   }
 
   return (
-    <div className="h-full flex flex-col">
+    <div className="h-full flex flex-col pb-16">
       <Header title="TAXI STATISTICS" />
       
       <div className="flex-1 bg-gray-900 p-4">
@@ -220,7 +220,10 @@ export default function Statistics() {
         </Tabs>
       </div>
       
-      <Navigation />
+      {/* Fixed Main Navigation */}
+      <div className="fixed bottom-0 left-0 right-0 z-20">
+        <Navigation />
+      </div>
     </div>
   );
 }
