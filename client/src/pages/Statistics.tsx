@@ -125,35 +125,35 @@ export default function Statistics() {
             <div className="space-y-6 pb-20">
               <div className="text-center">
                 <p className="text-sm font-medium text-gray-400 mb-1">PASSENGERS TODAY</p>
-                <p className="text-4xl font-bold text-primary" data-testid="stat-passengers">
+                <p className="text-2xl font-bold text-primary" data-testid="stat-passengers">
                   {stats?.passengersToday || 0} passengers
                 </p>
               </div>
               
               <div className="text-center">
                 <p className="text-sm font-medium text-gray-400 mb-1">DISTANCE TRAVELED</p>
-                <p className="text-4xl font-bold text-primary" data-testid="stat-distance">
+                <p className="text-2xl font-bold text-primary" data-testid="stat-distance">
                   {stats?.distanceTraveled?.toFixed(1) || 0} km
                 </p>
               </div>
               
               <div className="text-center">
                 <p className="text-sm font-medium text-gray-400 mb-1">ROUTE EFFICIENCY</p>
-                <p className="text-4xl font-bold text-primary" data-testid="stat-efficiency">
+                <p className="text-2xl font-bold text-primary" data-testid="stat-efficiency">
                   {stats?.routeEfficiency?.toFixed(1) || 0}%
                 </p>
               </div>
               
               <div className="text-center">
                 <p className="text-sm font-medium text-gray-400 mb-1">FUEL CONSUMPTION</p>
-                <p className="text-4xl font-bold text-primary" data-testid="stat-fuel">
+                <p className="text-2xl font-bold text-primary" data-testid="stat-fuel">
                   {stats?.fuelConsumption?.toFixed(1) || 0} L
                 </p>
               </div>
               
               <div className="text-center">
                 <p className="text-sm font-medium text-gray-400 mb-1">TOTAL EARNINGS</p>
-                <p className="text-4xl font-bold text-primary" data-testid="stat-earnings">
+                <p className="text-2xl font-bold text-primary" data-testid="stat-earnings">
                   R{stats?.totalEarnings?.toLocaleString() || 0}
                 </p>
               </div>
@@ -177,11 +177,11 @@ export default function Statistics() {
                   <div className="grid grid-cols-2 gap-4 mt-4">
                     <div className="bg-gray-800 rounded-lg p-3">
                       <p className="text-xs text-gray-400">AVG SPEED</p>
-                      <p className="text-lg font-bold text-white">45 km/h</p>
+                      <p className="text-base font-bold text-white">45 km/h</p>
                     </div>
                     <div className="bg-gray-800 rounded-lg p-3">
                       <p className="text-xs text-gray-400">BREAK TIME</p>
-                      <p className="text-lg font-bold text-white">2.5 hrs</p>
+                      <p className="text-base font-bold text-white">2.5 hrs</p>
                     </div>
                   </div>
                 </div>
