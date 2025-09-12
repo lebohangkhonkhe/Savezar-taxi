@@ -37,9 +37,7 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
               <div className="w-1 h-1 bg-gray-500 rounded-full"></div>
             </div>
             <div></div>
-            <div className="flex items-center space-x-1">
-              <i className="fas fa-battery-full text-green-400"></i>
-            </div>
+            <div></div>
           </div>
           <div className="flex items-center justify-center h-full min-h-[600px]">
             <div className="text-center">
@@ -81,9 +79,7 @@ function Router() {
             <div className="w-1 h-1 bg-gray-500 rounded-full"></div>
           </div>
           <div></div>
-          <div className="flex items-center space-x-1">
-            <i className="fas fa-battery-full text-green-400"></i>
-          </div>
+          <div></div>
         </div>
         
         <div className="min-h-[600px]">

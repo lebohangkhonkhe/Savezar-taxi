@@ -76,9 +76,7 @@ export default function Login() {
             <div className="w-1 h-1 bg-gray-500 rounded-full"></div>
           </div>
           <div></div>
-          <div className="flex items-center space-x-1">
-            <i className="fas fa-battery-full text-green-400"></i>
-          </div>
+          <div></div>
         </div>
 
         <div className="h-full flex flex-col justify-center items-center p-8 bg-white grid-pattern">
