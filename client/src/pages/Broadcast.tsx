@@ -17,6 +17,7 @@ export default function Broadcast() {
   const [autoStartRecording, setAutoStartRecording] = useState(false);
   const [audioRecording, setAudioRecording] = useState(true);
   const [recordingStartTime, setRecordingStartTime] = useState<Date | null>(null);
+  const [playingRecording, setPlayingRecording] = useState<string | null>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
 
@@ -42,6 +43,7 @@ export default function Broadcast() {
     mutationFn: async (recordingData: { 
       taxiId: string; 
       filename: string; 
+      fileUrl?: string;
       duration?: number; 
       fileSize?: number; 
       title?: string;
@@ -106,24 +108,44 @@ export default function Broadcast() {
           const url = URL.createObjectURL(blob);
           console.log('Recording saved locally:', url);
           
-          // Save recording metadata to database
+          // Upload video file and save recording metadata to database
           if (currentTaxiId && recordingStartTime) {
             const duration = Math.floor((Date.now() - recordingStartTime.getTime()) / 1000);
             const currentTime = new Date();
             const filename = `recording_${currentTime.getTime()}.webm`;
             
             try {
+              // First, upload the video blob to the server
+              const uploadResponse = await fetch('/api/files/upload', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': mimeType,
+                  'X-Filename': filename,
+                },
+                body: blob,
+                credentials: 'include',
+              });
+              
+              if (!uploadResponse.ok) {
+                throw new Error('Failed to upload video file');
+              }
+              
+              const uploadResult = await uploadResponse.json();
+              console.log('Video file uploaded successfully:', uploadResult);
+              
+              // Then save recording metadata with the file URL
               await createRecordingMutation.mutateAsync({
                 taxiId: currentTaxiId,
                 filename: filename,
+                fileUrl: uploadResult.fileUrl,
                 duration: duration,
                 fileSize: blob.size,
                 mimeType: mimeType,
                 title: `${activeTaxi?.name || 'Taxi'} Recording - ${currentTime.toLocaleString()}`
               });
-              console.log('Recording metadata saved to database');
+              console.log('Recording metadata saved to database with file URL');
             } catch (error) {
-              console.error('Error saving recording metadata:', error);
+              console.error('Error uploading/saving recording:', error);
             }
           }
         };
@@ -388,9 +410,15 @@ export default function Broadcast() {
                           {recording.recordedAt ? new Date(recording.recordedAt).toLocaleDateString() : 'Unknown date'}
                         </p>
                       </div>
-                      <Button size="sm" className="bg-primary hover:bg-primary/90" data-testid={`button-play-recording-${recording.id}`}>
+                      <Button 
+                        size="sm" 
+                        className="bg-primary hover:bg-primary/90" 
+                        data-testid={`button-play-recording-${recording.id}`}
+                        onClick={() => setPlayingRecording(recording.id)}
+                        disabled={!recording.fileUrl}
+                      >
                         <i className="fas fa-play mr-2"></i>
-                        Play
+                        {recording.fileUrl ? 'Play' : 'Unavailable'}
                       </Button>
                     </div>
                   ))
@@ -401,6 +429,49 @@ export default function Broadcast() {
                 )}
               </div>
             </div>
+            
+            {/* Video Player Modal */}
+            {playingRecording && recordings && (
+              <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50" onClick={() => setPlayingRecording(null)}>
+                <div className="bg-gray-800 p-4 rounded-lg max-w-4xl w-full max-h-[90vh] overflow-auto" onClick={(e) => e.stopPropagation()}>
+                  {(() => {
+                    const recording = recordings.find(r => r.id === playingRecording);
+                    if (!recording || !recording.fileUrl) return null;
+                    
+                    return (
+                      <div>
+                        <div className="flex items-center justify-between mb-4">
+                          <h3 className="text-white font-semibold text-lg">{recording.title || recording.filename}</h3>
+                          <Button 
+                            size="sm" 
+                            variant="outline" 
+                            onClick={() => setPlayingRecording(null)}
+                            data-testid="button-close-video-player"
+                          >
+                            <i className="fas fa-times mr-2"></i>
+                            Close
+                          </Button>
+                        </div>
+                        <video 
+                          src={recording.fileUrl} 
+                          controls 
+                          autoPlay
+                          className="w-full h-auto max-h-[70vh] bg-black rounded"
+                          data-testid={`video-player-${recording.id}`}
+                        >
+                          Your browser does not support the video tag.
+                        </video>
+                        <div className="mt-3 text-gray-400 text-sm">
+                          <p>Duration: {recording.duration ? `${Math.floor(recording.duration / 60)}:${(recording.duration % 60).toString().padStart(2, '0')}` : 'Unknown'}</p>
+                          <p>Size: {recording.fileSize ? `${(recording.fileSize / 1024 / 1024).toFixed(1)} MB` : 'Unknown'}</p>
+                          <p>Recorded: {recording.recordedAt ? new Date(recording.recordedAt).toLocaleString() : 'Unknown'}</p>
+                        </div>
+                      </div>
+                    );
+                  })()}
+                </div>
+              </div>
+            )}
           </TabsContent>
           
           <TabsContent value="schedule" className="mt-4">

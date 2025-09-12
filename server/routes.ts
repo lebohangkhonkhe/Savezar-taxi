@@ -252,6 +252,52 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // File upload and serve routes
+  app.post("/api/files/upload", requireAuth, async (req, res) => {
+    try {
+      const chunks: Buffer[] = [];
+      
+      req.on('data', (chunk) => {
+        chunks.push(chunk);
+      });
+      
+      req.on('end', async () => {
+        try {
+          const buffer = Buffer.concat(chunks);
+          const mimeType = req.headers['content-type'] || 'application/octet-stream';
+          const filename = req.headers['x-filename'] as string || `upload_${Date.now()}`;
+          
+          const fileUrl = await storage.storeFile(filename, buffer, mimeType);
+          res.json({ fileUrl, filename, size: buffer.length });
+        } catch (error) {
+          console.error('File upload error:', error);
+          res.status(500).json({ message: "Failed to store file" });
+        }
+      });
+      
+      req.on('error', (error) => {
+        console.error('Upload request error:', error);
+        res.status(500).json({ message: "Failed to upload file" });
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to process file upload" });
+    }
+  });
+
+  app.get("/api/files/:filename", requireAuth, async (req, res) => {
+    try {
+      const file = await storage.getFile(req.params.filename);
+      if (!file) {
+        return res.status(404).json({ message: "File not found" });
+      }
+      
+      res.setHeader('Content-Type', file.mimeType);
+      res.send(file.data);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to serve file" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

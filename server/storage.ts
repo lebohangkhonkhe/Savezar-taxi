@@ -36,11 +36,19 @@ export interface IStorage {
   createRecording(recording: InsertRecording): Promise<Recording>;
   updateRecording(id: string, updates: Partial<InsertRecording>): Promise<Recording | undefined>;
   deleteRecording(id: string): Promise<boolean>;
+
+  // File storage methods
+  storeFile(filename: string, fileData: Buffer, mimeType: string): Promise<string>; // Returns file URL
+  getFile(filename: string): Promise<{ data: Buffer; mimeType: string } | undefined>;
+  deleteFile(filename: string): Promise<boolean>;
 }
 
 export class DatabaseStorage implements IStorage {
   // Initialize sample data on first run
   private initialized = false;
+  
+  // In-memory file storage for development
+  private fileStorage = new Map<string, { data: Buffer; mimeType: string }>();
 
   private async ensureInitialized() {
     if (this.initialized) return;
@@ -245,6 +253,23 @@ export class DatabaseStorage implements IStorage {
     await this.ensureInitialized();
     const [deleted] = await db.delete(recordings).where(eq(recordings.id, id)).returning();
     return !!deleted;
+  }
+
+  // File storage methods
+  async storeFile(filename: string, fileData: Buffer, mimeType: string): Promise<string> {
+    await this.ensureInitialized();
+    this.fileStorage.set(filename, { data: fileData, mimeType });
+    return `/api/files/${filename}`; // Return URL to access the file
+  }
+
+  async getFile(filename: string): Promise<{ data: Buffer; mimeType: string } | undefined> {
+    await this.ensureInitialized();
+    return this.fileStorage.get(filename);
+  }
+
+  async deleteFile(filename: string): Promise<boolean> {
+    await this.ensureInitialized();
+    return this.fileStorage.delete(filename);
   }
 }
 

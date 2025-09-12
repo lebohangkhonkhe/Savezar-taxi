@@ -49,6 +49,7 @@ export const recordings = pgTable("recordings", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   taxiId: varchar("taxi_id").notNull(),
   filename: text("filename").notNull(),
+  fileUrl: text("file_url"), // URL to access the stored video file
   duration: integer("duration"), // in seconds
   fileSize: integer("file_size"), // in bytes
   mimeType: text("mime_type").notNull().default("video/webm"),
