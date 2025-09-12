@@ -86,11 +86,48 @@ export default function Drivers() {
           <>
             {/* Driver Selection */}
             <div className="bg-white border-b border-border px-4 py-3">
-              <div className="flex items-center">
-                <div className="w-3 h-3 bg-primary rounded-full mr-3"></div>
-                <h3 className="font-semibold text-foreground" data-testid="text-selected-driver">
-                  Driver 1: {currentDriver.name}
-                </h3>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center">
+                  <div className="w-3 h-3 bg-primary rounded-full mr-3"></div>
+                  <h3 className="font-semibold text-foreground" data-testid="text-selected-driver">
+                    Driver {(drivers?.findIndex(d => d.id === currentDriverId) || 0) + 1}: {currentDriver.name}
+                  </h3>
+                </div>
+                
+                {/* Navigation Controls */}
+                <div className="flex items-center space-x-2">
+                  <Button
+                    onClick={() => {
+                      const currentIndex = drivers?.findIndex(d => d.id === currentDriverId) || 0;
+                      const prevIndex = currentIndex > 0 ? currentIndex - 1 : (drivers?.length || 1) - 1;
+                      const prevDriver = drivers?.[prevIndex];
+                      if (prevDriver) setSelectedDriverId(prevDriver.id);
+                    }}
+                    variant="outline"
+                    size="sm"
+                    className="h-8 w-8 p-0"
+                    data-testid="button-prev-driver"
+                  >
+                    <i className="fas fa-chevron-left text-sm"></i>
+                  </Button>
+                  <span className="text-sm text-muted-foreground" data-testid="text-driver-counter">
+                    {(drivers?.findIndex(d => d.id === currentDriverId) || 0) + 1}/{drivers?.length || 0}
+                  </span>
+                  <Button
+                    onClick={() => {
+                      const currentIndex = drivers?.findIndex(d => d.id === currentDriverId) || 0;
+                      const nextIndex = currentIndex < (drivers?.length || 1) - 1 ? currentIndex + 1 : 0;
+                      const nextDriver = drivers?.[nextIndex];
+                      if (nextDriver) setSelectedDriverId(nextDriver.id);
+                    }}
+                    variant="outline"
+                    size="sm"
+                    className="h-8 w-8 p-0"
+                    data-testid="button-next-driver"
+                  >
+                    <i className="fas fa-chevron-right text-sm"></i>
+                  </Button>
+                </div>
               </div>
             </div>
             
