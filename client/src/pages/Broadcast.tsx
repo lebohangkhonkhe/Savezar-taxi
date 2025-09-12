@@ -7,7 +7,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import type { Taxi, Driver } from "@shared/schema";
 
 export default function Broadcast() {
-  const [isLive, setIsLive] = useState(true);
+  const [isLive, setIsLive] = useState(false);
   const [selectedTaxiId, setSelectedTaxiId] = useState<string>("");
 
   const { data: taxis, isLoading: taxisLoading } = useQuery<Taxi[]>({
@@ -32,6 +32,8 @@ export default function Broadcast() {
       const currentIndex = taxis.findIndex(taxi => taxi.id === currentTaxiId);
       const nextIndex = (currentIndex + 1) % taxis.length;
       setSelectedTaxiId(taxis[nextIndex].id);
+      // Reset live state when switching taxis for monitoring clarity
+      setIsLive(false);
     }
   };
 
@@ -40,7 +42,7 @@ export default function Broadcast() {
   if (!currentTaxiId && !taxisLoading) {
     return (
       <div className="h-full flex flex-col">
-        <Header title="LIVE BROADCAST" />
+        <Header title="BROADCAST" />
         <div className="flex-1 flex items-center justify-center bg-gray-900">
           <div className="text-center text-white" data-testid="empty-state-no-broadcast">
             <i className="fas fa-video text-4xl mb-4"></i>
@@ -55,7 +57,7 @@ export default function Broadcast() {
 
   return (
     <div className="h-full flex flex-col">
-      <Header title="LIVE BROADCAST" />
+      <Header title="BROADCAST" />
       
       <div className="flex-1 bg-gray-900 relative">
         {isLoading ? (
@@ -68,8 +70,8 @@ export default function Broadcast() {
             <div className="absolute top-4 left-4 right-4 bg-white rounded-lg shadow-md p-3 z-10">
               <div className="flex items-center">
                 <div className="w-4 h-4 bg-primary rounded-full mr-3"></div>
-                <h3 className="font-semibold text-foreground" data-testid="text-broadcast-taxi">
-                  TAXI 1 ({driver?.name || 'Driver'})
+                <h3 className="font-semibold text-foreground" data-testid="text-selected-taxi">
+                  {activeTaxi?.name || 'Taxi 1'}: {driver?.name || 'Driver'}
                 </h3>
                 <button className="ml-auto" onClick={handleNextTaxi} data-testid="button-select-taxi">
                   <i className="fas fa-chevron-down text-muted-foreground"></i>
@@ -88,10 +90,10 @@ export default function Broadcast() {
               
               {/* Video Overlay */}
               {!isLive && (
-                <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                <div className="absolute inset-0 bg-black/70 flex items-center justify-center" data-testid="video-placeholder">
                   <div className="text-center text-white">
                     <i className="fas fa-play text-6xl mb-4"></i>
-                    <p className="text-xl font-semibold">Broadcast Paused</p>
+                    <p className="text-xl font-semibold">Ready to Broadcast</p>
                   </div>
                 </div>
               )}
@@ -99,9 +101,9 @@ export default function Broadcast() {
             
             {/* Live Indicator */}
             {isLive && (
-              <div className="absolute top-20 right-4 bg-red-600 text-white px-3 py-1 rounded-full text-sm font-bold flex items-center" data-testid="status-live">
-                <div className="w-2 h-2 bg-white rounded-full mr-2 pulse-dot"></div>
-                GO LIVE
+              <div className="absolute top-20 right-4 bg-red-600 text-white px-3 py-1 rounded-full text-sm font-bold flex items-center" data-testid="indicator-live">
+                <div className="w-2 h-2 bg-white rounded-full mr-2 animate-pulse"></div>
+                LIVE
               </div>
             )}
             
@@ -109,14 +111,14 @@ export default function Broadcast() {
             <div className="absolute bottom-4 left-4 right-4 flex justify-center">
               <Button
                 onClick={handleToggleRecording}
-                className={`rounded-full p-4 shadow-lg ${
+                className={`px-8 py-3 rounded-full shadow-lg font-bold ${
                   isLive 
                     ? 'bg-red-600 hover:bg-red-700' 
-                    : 'bg-primary hover:bg-primary/90'
+                    : 'bg-green-600 hover:bg-green-700'
                 } text-white`}
-                data-testid="button-toggle-broadcast"
+                data-testid={isLive ? "button-end-live" : "button-go-live"}
               >
-                <i className={`fas ${isLive ? 'fa-stop' : 'fa-play'} text-xl`}></i>
+                {isLive ? 'END LIVE' : 'GO LIVE'}
               </Button>
             </div>
             
