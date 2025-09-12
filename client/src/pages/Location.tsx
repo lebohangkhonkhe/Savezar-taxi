@@ -28,11 +28,15 @@ export default function Location() {
   const currentTaxi = validTaxis[currentTaxiIndex];
 
   const nextTaxi = () => {
-    setCurrentTaxiIndex((prev) => (prev + 1) % validTaxis.length);
+    if (validTaxis.length > 0) {
+      setCurrentTaxiIndex((prev) => (prev + 1) % validTaxis.length);
+    }
   };
 
   const prevTaxi = () => {
-    setCurrentTaxiIndex((prev) => (prev - 1 + validTaxis.length) % validTaxis.length);
+    if (validTaxis.length > 0) {
+      setCurrentTaxiIndex((prev) => (prev - 1 + validTaxis.length) % validTaxis.length);
+    }
   };
 
   // Get user's current location
@@ -79,8 +83,14 @@ export default function Location() {
 
   // Auto-request location on component mount
   useEffect(() => {
+    console.log('Location component mounted, requesting location...');
     getCurrentLocation();
   }, []);
+  
+  // Debug location state
+  useEffect(() => {
+    console.log('Location state:', { userLocation, locationError, isLocationLoading });
+  }, [userLocation, locationError, isLocationLoading]);
 
   return (
     <div className="h-full flex flex-col">
@@ -93,9 +103,9 @@ export default function Location() {
       ) : validTaxis.length > 0 ? (
         <div className="flex-1 flex flex-col">
           <MapComponent
-            latitude={userLocation?.lat || currentTaxi.currentLatitude || undefined}
-            longitude={userLocation?.lng || currentTaxi.currentLongitude || undefined}
-            location={userLocation ? `Your Current Location` : currentTaxi.currentLocation || undefined}
+            latitude={userLocation?.lat || currentTaxi?.currentLatitude || undefined}
+            longitude={userLocation?.lng || currentTaxi?.currentLongitude || undefined}
+            location={userLocation ? `Your Current Location` : currentTaxi?.currentLocation || undefined}
           />
           
           {/* Location Status */}
@@ -103,7 +113,13 @@ export default function Location() {
             {userLocation && (
               <div className="bg-green-100 border border-green-400 text-green-700 px-3 py-2 rounded mb-2" data-testid="location-success">
                 <i className="fas fa-map-marker-alt mr-2"></i>
-                Using your current location
+                Using your current location ({userLocation.lat.toFixed(4)}, {userLocation.lng.toFixed(4)})
+              </div>
+            )}
+            {!userLocation && currentTaxi && (
+              <div className="bg-blue-100 border border-blue-400 text-blue-700 px-3 py-2 rounded mb-2" data-testid="location-taxi">
+                <i className="fas fa-taxi mr-2"></i>
+                Showing {currentTaxi.name} location ({currentTaxi.currentLatitude?.toFixed(4)}, {currentTaxi.currentLongitude?.toFixed(4)})
               </div>
             )}
             {locationError && (

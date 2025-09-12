@@ -13,6 +13,8 @@ export default function Broadcast() {
   const [isRecording, setIsRecording] = useState(false);
   const [mediaStream, setMediaStream] = useState<MediaStream | null>(null);
   const [recordedChunks, setRecordedChunks] = useState<Blob[]>([]);
+  const [autoStartRecording, setAutoStartRecording] = useState(false);
+  const [audioRecording, setAudioRecording] = useState(true);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
 
@@ -30,13 +32,24 @@ export default function Broadcast() {
   });
 
   const handleToggleRecording = async () => {
+    console.log('handleToggleRecording called, current isRecording:', isRecording);
+    
     if (!isRecording) {
       try {
+        console.log('Requesting camera and microphone access...');
+        
+        // Check if getUserMedia is available
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+          throw new Error('getUserMedia is not supported in this browser');
+        }
+        
         // Request camera and microphone permissions
         const stream = await navigator.mediaDevices.getUserMedia({
           video: { width: 1280, height: 720 },
           audio: true
         });
+        
+        console.log('Media stream obtained:', stream);
         
         setMediaStream(stream);
         if (videoRef.current) {
@@ -72,15 +85,23 @@ export default function Broadcast() {
         
         mediaRecorderRef.current = mediaRecorder;
         mediaRecorder.start(1000); // Record in 1-second chunks to manage memory
+        
+        console.log('Setting recording state to true');
         setIsRecording(true);
         setIsLive(true);
         
+        console.log('Recording started successfully');
+        
       } catch (error) {
         console.error('Error starting recording:', error);
-        alert('Could not access camera/microphone. Please check permissions.');
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        const errorName = error instanceof Error ? error.name : 'Error';
+        console.error('Error details:', errorMessage, errorName);
+        alert(`Could not access camera/microphone: ${errorMessage}. Please check permissions.`);
       }
     } else {
       // Stop recording
+      console.log('Stopping recording...');
       stopRecording();
     }
   };
@@ -121,7 +142,20 @@ export default function Broadcast() {
         stopRecording();
       }
     };
-  }, []);
+  }, [isRecording]);
+  
+  // Debug logging for recording state
+  useEffect(() => {
+    console.log('Recording state changed:', { isRecording, isLive, mediaStream: !!mediaStream, autoStartRecording });
+  }, [isRecording, isLive, mediaStream, autoStartRecording]);
+  
+  // Auto-start recording when enabled and taxi changes
+  useEffect(() => {
+    if (autoStartRecording && currentTaxiId && !isRecording) {
+      console.log('Auto-starting recording for taxi:', currentTaxiId);
+      handleToggleRecording();
+    }
+  }, [currentTaxiId, autoStartRecording]); // Don't include isRecording to avoid loops
 
   if (!currentTaxiId && !taxisLoading) {
     return (
@@ -231,8 +265,8 @@ export default function Broadcast() {
         )}
       </div>
       
-      {/* Tabs Section */}
-      <div className="bg-gray-900 p-4">
+      {/* Sticky Tabs Section */}
+      <div className="bg-gray-900 p-4 sticky bottom-16 z-10 border-t border-gray-700">
         <Tabs defaultValue="live" className="w-full">
           <TabsList className="grid w-full grid-cols-4 bg-gray-800">
             <TabsTrigger value="live" className="text-white data-[state=active]:bg-gray-700" data-testid="tab-live">
@@ -255,15 +289,37 @@ export default function Broadcast() {
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
                   <span className="text-gray-300">Auto-start recording</span>
-                  <div className="w-12 h-6 bg-gray-600 rounded-full relative">
-                    <div className="w-5 h-5 bg-white rounded-full absolute top-0.5 left-1"></div>
-                  </div>
+                  <button
+                    onClick={() => setAutoStartRecording(!autoStartRecording)}
+                    className={`w-12 h-6 rounded-full relative transition-colors duration-200 ${
+                      autoStartRecording ? 'bg-primary' : 'bg-gray-600'
+                    }`}
+                    role="switch"
+                    aria-checked={autoStartRecording}
+                    aria-label="Auto-start recording"
+                    data-testid="switch-auto-start"
+                  >
+                    <div className={`w-5 h-5 bg-white rounded-full absolute top-0.5 transition-transform duration-200 ${
+                      autoStartRecording ? 'right-1 translate-x-0' : 'left-1'
+                    }`}></div>
+                  </button>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-gray-300">Audio recording</span>
-                  <div className="w-12 h-6 bg-primary rounded-full relative">
-                    <div className="w-5 h-5 bg-white rounded-full absolute top-0.5 right-1"></div>
-                  </div>
+                  <button
+                    onClick={() => setAudioRecording(!audioRecording)}
+                    className={`w-12 h-6 rounded-full relative transition-colors duration-200 ${
+                      audioRecording ? 'bg-primary' : 'bg-gray-600'
+                    }`}
+                    role="switch"
+                    aria-checked={audioRecording}
+                    aria-label="Audio recording"
+                    data-testid="switch-audio-recording"
+                  >
+                    <div className={`w-5 h-5 bg-white rounded-full absolute top-0.5 transition-transform duration-200 ${
+                      audioRecording ? 'right-1 translate-x-0' : 'left-1'
+                    }`}></div>
+                  </button>
                 </div>
               </div>
             </div>

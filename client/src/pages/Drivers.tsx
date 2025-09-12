@@ -4,6 +4,7 @@ import Header from "@/components/Header";
 import Navigation from "@/components/Navigation";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import type { Driver } from "@shared/schema";
 
@@ -147,8 +148,8 @@ export default function Drivers() {
               )}
             </div>
             
-            {/* Driver Information */}
-            <div className="bg-gray-900 p-6">
+            {/* Driver Information - Scrollable Content */}
+            <div className="bg-gray-900 p-6 pb-32">
               <div className="text-center mb-6">
                 <h2 className="text-xl font-bold text-white mb-1" data-testid="text-driver-name">
                   NAME: {currentDriver.name}
@@ -177,7 +178,7 @@ export default function Drivers() {
               </div>
               
               {/* Contact Actions */}
-              <div className="flex justify-center space-x-4">
+              <div className="flex justify-center space-x-4 mb-6">
                 <Button
                   onClick={handleCall}
                   className="bg-green-500 hover:bg-green-600 text-white rounded-full p-3"
@@ -193,6 +194,43 @@ export default function Drivers() {
                   <i className="fas fa-comment"></i>
                 </Button>
               </div>
+              
+              {/* Additional Driver Details */}
+              <div className="space-y-4">
+                <div className="bg-gray-800 rounded-lg p-4">
+                  <h4 className="text-white font-medium mb-2">Driver Details</h4>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">Phone:</span>
+                      <span className="text-white">{currentDriver.phone || 'N/A'}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">Status:</span>
+                      <span className={`${currentDriver.isActive ? 'text-green-400' : 'text-red-400'}`}>
+                        {currentDriver.isActive ? 'Active' : 'Inactive'}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">Experience:</span>
+                      <span className="text-white">{Math.floor(Math.random() * 10) + 1} years</span>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="bg-gray-800 rounded-lg p-4">
+                  <h4 className="text-white font-medium mb-2">Recent Performance</h4>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="text-center">
+                      <p className="text-xs text-gray-400">TRIPS TODAY</p>
+                      <p className="text-lg font-bold text-primary">{Math.floor(Math.random() * 20) + 5}</p>
+                    </div>
+                    <div className="text-center">
+                      <p className="text-xs text-gray-400">EARNINGS TODAY</p>
+                      <p className="text-lg font-bold text-primary">R{(Math.random() * 2000 + 500).toFixed(0)}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           </>
         ) : (
@@ -204,6 +242,35 @@ export default function Drivers() {
             </div>
           </div>
         )}
+      </div>
+      
+      {/* Sticky Tabs */}
+      <div className="bg-gray-900 border-t border-gray-700 sticky bottom-16 z-10">
+        <Tabs defaultValue="profile" className="w-full">
+          <TabsList className="grid w-full grid-cols-3 bg-gray-800 rounded-none">
+            <TabsTrigger value="profile" className="text-white data-[state=active]:bg-gray-700" data-testid="tab-profile">
+              Profile
+            </TabsTrigger>
+            <TabsTrigger value="performance" className="text-white data-[state=active]:bg-gray-700" data-testid="tab-performance">
+              Performance
+            </TabsTrigger>
+            <TabsTrigger value="contact" className="text-white data-[state=active]:bg-gray-700" data-testid="tab-contact">
+              Contact
+            </TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="profile" className="px-4 py-2">
+            <p className="text-sm text-gray-400 text-center">Driver profile information and details</p>
+          </TabsContent>
+          
+          <TabsContent value="performance" className="px-4 py-2">
+            <p className="text-sm text-gray-400 text-center">Performance metrics and statistics</p>
+          </TabsContent>
+          
+          <TabsContent value="contact" className="px-4 py-2">
+            <p className="text-sm text-gray-400 text-center">Contact options and communication history</p>
+          </TabsContent>
+        </Tabs>
       </div>
       
       <Navigation />

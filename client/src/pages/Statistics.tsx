@@ -4,6 +4,7 @@ import Header from "@/components/Header";
 import Navigation from "@/components/Navigation";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import type { Taxi, TaxiStats, Driver } from "@shared/schema";
@@ -120,8 +121,8 @@ export default function Statistics() {
               )}
             </div>
             
-            {/* Statistics */}
-            <div className="space-y-6">
+            {/* Statistics - Scrollable Content */}
+            <div className="space-y-6 pb-20">
               <div className="text-center">
                 <p className="text-sm font-medium text-gray-400 mb-1">PASSENGERS TODAY</p>
                 <p className="text-4xl font-bold text-primary" data-testid="stat-passengers">
@@ -150,6 +151,13 @@ export default function Statistics() {
                 </p>
               </div>
               
+              <div className="text-center">
+                <p className="text-sm font-medium text-gray-400 mb-1">TOTAL EARNINGS</p>
+                <p className="text-4xl font-bold text-primary" data-testid="stat-earnings">
+                  R{stats?.totalEarnings?.toLocaleString() || 0}
+                </p>
+              </div>
+              
               {/* Refresh Button */}
               <div className="text-center mt-8">
                 <Button 
@@ -161,9 +169,55 @@ export default function Statistics() {
                   {refreshMutation.isPending ? "refreshing..." : "refresh"}
                 </Button>
               </div>
+              
+              {/* Extra content to demonstrate scrolling */}
+              <div className="space-y-4 mt-8">
+                <div className="text-center">
+                  <p className="text-sm font-medium text-gray-400 mb-1">DAILY PERFORMANCE</p>
+                  <div className="grid grid-cols-2 gap-4 mt-4">
+                    <div className="bg-gray-800 rounded-lg p-3">
+                      <p className="text-xs text-gray-400">AVG SPEED</p>
+                      <p className="text-lg font-bold text-white">45 km/h</p>
+                    </div>
+                    <div className="bg-gray-800 rounded-lg p-3">
+                      <p className="text-xs text-gray-400">BREAK TIME</p>
+                      <p className="text-lg font-bold text-white">2.5 hrs</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           </>
         )}
+      </div>
+      
+      {/* Sticky Tabs */}
+      <div className="bg-gray-900 border-t border-gray-700 sticky bottom-16 z-10">
+        <Tabs defaultValue="overview" className="w-full">
+          <TabsList className="grid w-full grid-cols-3 bg-gray-800 rounded-none">
+            <TabsTrigger value="overview" className="text-white data-[state=active]:bg-gray-700" data-testid="tab-overview">
+              Overview
+            </TabsTrigger>
+            <TabsTrigger value="daily" className="text-white data-[state=active]:bg-gray-700" data-testid="tab-daily">
+              Daily
+            </TabsTrigger>
+            <TabsTrigger value="weekly" className="text-white data-[state=active]:bg-gray-700" data-testid="tab-weekly">
+              Weekly
+            </TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="overview" className="px-4 py-2">
+            <p className="text-sm text-gray-400 text-center">Current day overview - main statistics displayed above</p>
+          </TabsContent>
+          
+          <TabsContent value="daily" className="px-4 py-2">
+            <p className="text-sm text-gray-400 text-center">Daily performance tracking and trends</p>
+          </TabsContent>
+          
+          <TabsContent value="weekly" className="px-4 py-2">
+            <p className="text-sm text-gray-400 text-center">Weekly statistics and performance analysis</p>
+          </TabsContent>
+        </Tabs>
       </div>
       
       <Navigation />
