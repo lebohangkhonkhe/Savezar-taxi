@@ -83,11 +83,23 @@ export default function Login() {
 
         <div className="h-full flex flex-col justify-center items-center p-8 bg-white grid-pattern">
           <div className="text-center mb-12">
-            <div className="savezar-logo text-3xl mb-2">
-              <div className="logo-icon"></div>
-              saveZar
+            <div className="flex flex-col items-center mb-4">
+              {/* Taxi dome light logo */}
+              <div className="relative mb-3">
+                <div className="w-16 h-12 bg-white border-4 border-gray-800 rounded-t-full relative">
+                  <div className="absolute top-2 left-1/2 transform -translate-x-1/2 w-6 h-6 bg-red-600 rounded-full">
+                    <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-3 h-3 bg-red-800 rounded-full"></div>
+                  </div>
+                </div>
+                <div className="w-16 h-2 bg-gray-800"></div>
+              </div>
+              
+              {/* SaveZar text */}
+              <div className="text-4xl font-bold">
+                <span className="text-gray-800">save</span><span className="text-red-600">Zar</span>
+              </div>
             </div>
-            <p className="text-sm text-muted-foreground">mobile taxi monitor</p>
+            <p className="text-sm text-gray-600 font-medium">mobile taxi monitor</p>
           </div>
           
           <div className="w-full max-w-sm">
