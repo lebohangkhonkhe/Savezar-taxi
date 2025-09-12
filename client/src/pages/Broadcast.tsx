@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import Header from "@/components/Header";
 import Navigation from "@/components/Navigation";
@@ -10,6 +10,11 @@ import type { Taxi, Driver } from "@shared/schema";
 export default function Broadcast() {
   const [isLive, setIsLive] = useState(false);
   const [selectedTaxiId, setSelectedTaxiId] = useState<string>("");
+  const [isRecording, setIsRecording] = useState(false);
+  const [mediaStream, setMediaStream] = useState<MediaStream | null>(null);
+  const [recordedChunks, setRecordedChunks] = useState<Blob[]>([]);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
 
   const { data: taxis, isLoading: taxisLoading } = useQuery<Taxi[]>({
     queryKey: ['/api/taxis'],
@@ -24,21 +29,99 @@ export default function Broadcast() {
     enabled: !!currentTaxiId,
   });
 
-  const handleToggleRecording = () => {
-    setIsLive(!isLive);
+  const handleToggleRecording = async () => {
+    if (!isRecording) {
+      try {
+        // Request camera and microphone permissions
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: { width: 1280, height: 720 },
+          audio: true
+        });
+        
+        setMediaStream(stream);
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+        }
+        
+        // Create MediaRecorder with fallback MIME types
+        let mimeType = 'video/webm;codecs=vp9';
+        if (!MediaRecorder.isTypeSupported(mimeType)) {
+          mimeType = 'video/webm;codecs=vp8';
+          if (!MediaRecorder.isTypeSupported(mimeType)) {
+            mimeType = 'video/webm';
+          }
+        }
+        
+        const mediaRecorder = new MediaRecorder(stream, { mimeType });
+        
+        const chunks: Blob[] = [];
+        
+        mediaRecorder.ondataavailable = (event) => {
+          if (event.data.size > 0) {
+            chunks.push(event.data);
+          }
+        };
+        
+        mediaRecorder.onstop = () => {
+          setRecordedChunks(chunks);
+          // You can save the recording here
+          const blob = new Blob(chunks, { type: 'video/webm' });
+          const url = URL.createObjectURL(blob);
+          console.log('Recording saved:', url);
+        };
+        
+        mediaRecorderRef.current = mediaRecorder;
+        mediaRecorder.start(1000); // Record in 1-second chunks to manage memory
+        setIsRecording(true);
+        setIsLive(true);
+        
+      } catch (error) {
+        console.error('Error starting recording:', error);
+        alert('Could not access camera/microphone. Please check permissions.');
+      }
+    } else {
+      // Stop recording
+      stopRecording();
+    }
   };
 
   const handleNextTaxi = () => {
     if (taxis && taxis.length > 1) {
+      // Stop recording when switching taxis
+      if (isRecording) {
+        stopRecording();
+      }
       const currentIndex = taxis.findIndex(taxi => taxi.id === currentTaxiId);
       const nextIndex = (currentIndex + 1) % taxis.length;
       setSelectedTaxiId(taxis[nextIndex].id);
-      // Reset live state when switching taxis for monitoring clarity
-      setIsLive(false);
     }
+  };
+  
+  const stopRecording = () => {
+    if (mediaRecorderRef.current) {
+      mediaRecorderRef.current.stop();
+    }
+    if (mediaStream) {
+      mediaStream.getTracks().forEach(track => track.stop());
+      setMediaStream(null);
+    }
+    if (videoRef.current) {
+      videoRef.current.srcObject = null;
+    }
+    setIsRecording(false);
+    setIsLive(false);
   };
 
   const isLoading = taxisLoading || driverLoading;
+  
+  // Cleanup on component unmount
+  useEffect(() => {
+    return () => {
+      if (isRecording) {
+        stopRecording();
+      }
+    };
+  }, []);
 
   if (!currentTaxiId && !taxisLoading) {
     return (
@@ -80,14 +163,24 @@ export default function Broadcast() {
               </div>
             </div>
             
-            {/* Video Feed Simulation */}
+            {/* Video Feed */}
             <div className="absolute inset-0 flex items-center justify-center">
-              <img 
-                src="https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=800&h=600" 
-                alt="Interior view of taxi with passengers" 
-                className="w-full h-full object-cover"
-                data-testid="video-feed"
-              />
+              {mediaStream ? (
+                <video
+                  ref={videoRef}
+                  autoPlay
+                  muted
+                  className="w-full h-full object-cover"
+                  data-testid="video-feed-live"
+                />
+              ) : (
+                <img 
+                  src="https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=800&h=600" 
+                  alt="Interior view of taxi with passengers" 
+                  className="w-full h-full object-cover"
+                  data-testid="video-feed"
+                />
+              )}
               
               {/* Video Overlay */}
               {!isLive && (
@@ -117,9 +210,10 @@ export default function Broadcast() {
                     ? 'bg-red-600 hover:bg-red-700' 
                     : 'bg-green-600 hover:bg-green-700'
                 } text-white`}
-                data-testid={isLive ? "button-end-live" : "button-go-live"}
+                data-testid={isRecording ? "button-stop-recording" : "button-start-recording"}
               >
-                {isLive ? 'END LIVE' : 'GO LIVE'}
+                <i className={`fas ${isRecording ? 'fa-stop' : 'fa-video'} mr-2`}></i>
+                {isRecording ? 'STOP RECORDING' : 'START RECORDING'}
               </Button>
             </div>
             
