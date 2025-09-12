@@ -266,7 +266,7 @@ export default function Broadcast() {
       </div>
       
       {/* Sticky Tabs Section */}
-      <div className="bg-gray-900 p-4 sticky bottom-16 z-10 border-t border-gray-700">
+      <div className="bg-gray-900 p-4 sticky bottom-16 z-10 border-t border-gray-700 mb-16">
         <Tabs defaultValue="live" className="w-full">
           <TabsList className="grid w-full grid-cols-4 bg-gray-800">
             <TabsTrigger value="live" className="text-white data-[state=active]:bg-gray-700" data-testid="tab-live">
@@ -396,7 +396,10 @@ export default function Broadcast() {
         </Tabs>
       </div>
       
-      <Navigation />
+      {/* Sticky Main Navigation */}
+      <div className="sticky bottom-0 z-20">
+        <Navigation />
+      </div>
     </div>
   );
 }

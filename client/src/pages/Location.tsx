@@ -199,7 +199,10 @@ export default function Location() {
         </div>
       )}
       
-      <Navigation />
+      {/* Sticky Main Navigation */}
+      <div className="sticky bottom-0 z-20">
+        <Navigation />
+      </div>
     </div>
   );
 }
