@@ -83,8 +83,10 @@ export class DatabaseStorage implements IStorage {
       // Create sample stats
       await db.insert(taxiStats).values({
         taxiId: taxi1.id,
-        passengersToday: 140,
-        kilometersToday: 146.5,
+        passengersToday: 142,
+        distanceTraveled: 285.6,
+        routeEfficiency: 87.2,
+        fuelConsumption: 34.8,
         totalEarnings: 28500
       });
 

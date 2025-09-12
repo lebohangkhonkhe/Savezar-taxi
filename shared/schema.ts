@@ -39,7 +39,9 @@ export const taxiStats = pgTable("taxi_stats", {
   taxiId: varchar("taxi_id").notNull(),
   date: timestamp("date").defaultNow(),
   passengersToday: integer("passengers_today").notNull().default(0),
-  kilometersToday: real("kilometers_today").notNull().default(0),
+  distanceTraveled: real("distance_traveled").notNull().default(0),
+  routeEfficiency: real("route_efficiency").notNull().default(0),
+  fuelConsumption: real("fuel_consumption").notNull().default(0),
   totalEarnings: real("total_earnings").notNull().default(0),
 });
 

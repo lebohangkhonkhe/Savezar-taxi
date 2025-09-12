@@ -35,8 +35,10 @@ export default function Statistics() {
     mutationFn: async () => {
       // Simulate refreshing stats with slight variations
       const newStats = {
-        passengersToday: (stats?.passengersToday || 140) + Math.floor(Math.random() * 10),
-        kilometersToday: (stats?.kilometersToday || 146) + Math.random() * 5,
+        passengersToday: (stats?.passengersToday || 142) + Math.floor(Math.random() * 10),
+        distanceTraveled: (stats?.distanceTraveled || 285.6) + Math.random() * 5,
+        routeEfficiency: (stats?.routeEfficiency || 87.2) + (Math.random() - 0.5) * 2,
+        fuelConsumption: (stats?.fuelConsumption || 34.8) + (Math.random() - 0.5) * 2,
         totalEarnings: (stats?.totalEarnings || 28500) + Math.random() * 1000,
       };
       
@@ -64,7 +66,7 @@ export default function Statistics() {
   if (!currentTaxiId && !taxisLoading) {
     return (
       <div className="h-full flex flex-col">
-        <Header title="TAXIstats." />
+        <Header title="TAXI STATISTICS" />
         <div className="flex-1 flex items-center justify-center bg-gray-50">
           <div className="text-center" data-testid="empty-state-no-taxis">
             <i className="fas fa-chart-bar text-4xl text-muted-foreground mb-4"></i>
@@ -79,7 +81,7 @@ export default function Statistics() {
 
   return (
     <div className="h-full flex flex-col">
-      <Header title="TAXIstats." />
+      <Header title="TAXI STATISTICS" />
       
       <div className="flex-1 bg-gray-50 p-4">
         {isLoading ? (
@@ -97,7 +99,7 @@ export default function Statistics() {
               <div className="flex items-center">
                 <div className="w-3 h-3 bg-primary rounded-full mr-3"></div>
                 <h3 className="font-semibold text-foreground" data-testid="text-selected-taxi">
-                  Taxi 1: {driver?.name || 'Driver'}
+                  Taxi 1
                 </h3>
               </div>
             </div>
@@ -123,14 +125,28 @@ export default function Statistics() {
               <div className="text-center">
                 <p className="text-sm font-medium text-muted-foreground mb-1">PASSENGERS TODAY</p>
                 <p className="text-4xl font-bold text-primary" data-testid="stat-passengers">
-                  {stats?.passengersToday || 0}
+                  {stats?.passengersToday || 0} passengers
                 </p>
               </div>
               
               <div className="text-center">
-                <p className="text-sm font-medium text-muted-foreground mb-1">KILOMETRES DRIVEN TODAY</p>
-                <p className="text-4xl font-bold text-primary" data-testid="stat-kilometers">
-                  {stats?.kilometersToday?.toFixed(0) || 0} kMs
+                <p className="text-sm font-medium text-muted-foreground mb-1">DISTANCE TRAVELED</p>
+                <p className="text-4xl font-bold text-primary" data-testid="stat-distance">
+                  {stats?.distanceTraveled?.toFixed(1) || 0} km
+                </p>
+              </div>
+              
+              <div className="text-center">
+                <p className="text-sm font-medium text-muted-foreground mb-1">ROUTE EFFICIENCY</p>
+                <p className="text-4xl font-bold text-primary" data-testid="stat-efficiency">
+                  {stats?.routeEfficiency?.toFixed(1) || 0}%
+                </p>
+              </div>
+              
+              <div className="text-center">
+                <p className="text-sm font-medium text-muted-foreground mb-1">FUEL CONSUMPTION</p>
+                <p className="text-4xl font-bold text-primary" data-testid="stat-fuel">
+                  {stats?.fuelConsumption?.toFixed(1) || 0} L
                 </p>
               </div>
               

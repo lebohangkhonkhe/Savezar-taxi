@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { loginSchema } from "@shared/schema";
+import { loginSchema, insertTaxiStatsSchema } from "@shared/schema";
 import session from "express-session";
 
 // Extend session type to include userId
@@ -169,10 +169,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.patch("/api/stats/taxi/:taxiId", requireAuth, async (req, res) => {
     try {
-      const { passengersToday, kilometersToday, totalEarnings } = req.body;
+      // Validate request body
+      const validation = insertTaxiStatsSchema.partial().safeParse(req.body);
+      if (!validation.success) {
+        return res.status(400).json({ message: "Invalid statistics data", errors: validation.error.errors });
+      }
+      
+      const { passengersToday, distanceTraveled, routeEfficiency, fuelConsumption, totalEarnings } = validation.data;
       const updatedStats = await storage.updateTaxiStats(req.params.taxiId, {
         passengersToday,
-        kilometersToday,
+        distanceTraveled,
+        routeEfficiency,
+        fuelConsumption,
         totalEarnings
       });
       
