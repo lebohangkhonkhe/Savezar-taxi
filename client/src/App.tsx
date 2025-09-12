@@ -36,9 +36,8 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
               <div className="w-1 h-1 bg-white rounded-full"></div>
               <div className="w-1 h-1 bg-gray-500 rounded-full"></div>
             </div>
-            <div className="text-center">10:43 AM</div>
+            <div></div>
             <div className="flex items-center space-x-1">
-              <span>100%</span>
               <i className="fas fa-battery-full text-green-400"></i>
             </div>
           </div>
@@ -81,9 +80,8 @@ function Router() {
             <div className="w-1 h-1 bg-white rounded-full"></div>
             <div className="w-1 h-1 bg-gray-500 rounded-full"></div>
           </div>
-          <div className="text-center">10:43 AM</div>
+          <div></div>
           <div className="flex items-center space-x-1">
-            <span>100%</span>
             <i className="fas fa-battery-full text-green-400"></i>
           </div>
         </div>
