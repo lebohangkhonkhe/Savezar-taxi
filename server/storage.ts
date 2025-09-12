@@ -71,7 +71,7 @@ export class DatabaseStorage implements IStorage {
         name: "SaveZar Admin"
       }).returning();
 
-      // Create sample taxi
+      // Create sample taxis
       const [taxi1] = await db.insert(taxis).values({
         name: "Taxi 1",
         licensePlate: "LAG-001-XX",
@@ -81,30 +81,61 @@ export class DatabaseStorage implements IStorage {
         isOnline: true
       }).returning();
 
-      // Create sample driver
+      const [taxi2] = await db.insert(taxis).values({
+        name: "Taxi 2",
+        licensePlate: "LST-055-GP",
+        currentLatitude: -29.3621,
+        currentLongitude: 27.3977,
+        currentLocation: "Tsheseng Shopping Centre",
+        isOnline: true
+      }).returning();
+
+      // Create sample drivers
       const [driver1] = await db.insert(drivers).values({
-        name: "Tshepo Trust",
+        name: "Noosi Thabang Seoe",
         age: 36,
-        phone: "+234-801-234-5678",
+        phone: "+27 81 712 8154",
         rating: 4.2,
         avgPassengersPerDay: 235,
-        photoUrl: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop&crop=face",
+        photoUrl: "/noosi-profile.jpg",
         taxiId: taxi1.id,
         isActive: true
       }).returning();
 
-      // Update taxi with driver
-      await db.update(taxis).set({ driverId: driver1.id }).where(eq(taxis.id, taxi1.id));
+      const [driver2] = await db.insert(drivers).values({
+        name: "Lebohang Khonkhe",
+        age: 29,
+        phone: "+2763 387 7706",
+        rating: 4.5,
+        avgPassengersPerDay: 185,
+        photoUrl: "/lebohang-profile.jpg",
+        taxiId: taxi2.id,
+        isActive: true
+      }).returning();
 
-      // Create sample stats
-      await db.insert(taxiStats).values({
-        taxiId: taxi1.id,
-        passengersToday: 142,
-        distanceTraveled: 285.6,
-        routeEfficiency: 87.2,
-        fuelConsumption: 34.8,
-        totalEarnings: 28500
-      });
+      // Update taxis with drivers
+      await db.update(taxis).set({ driverId: driver1.id }).where(eq(taxis.id, taxi1.id));
+      await db.update(taxis).set({ driverId: driver2.id }).where(eq(taxis.id, taxi2.id));
+
+      // Create sample stats for both taxis
+      await db.insert(taxiStats).values([
+        {
+          taxiId: taxi1.id,
+          passengersToday: 142,
+          distanceTraveled: 285.6,
+          routeEfficiency: 87.2,
+          fuelConsumption: 34.8,
+          totalEarnings: 28500
+        },
+        {
+          taxiId: taxi2.id,
+          passengersToday: 98,
+          distanceTraveled: 198.4,
+          routeEfficiency: 92.1,
+          fuelConsumption: 25.3,
+          totalEarnings: 19750
+        }
+      ]);
 
       console.log("Sample data initialized successfully");
       this.initialized = true;
