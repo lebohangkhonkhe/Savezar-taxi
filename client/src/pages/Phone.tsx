@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
-import { Phone as PhoneIcon, PhoneCall, PhoneOff, Delete } from "lucide-react";
+import { Phone as PhoneIcon, PhoneCall, PhoneOff, Delete, ArrowLeft } from "lucide-react";
+import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -31,6 +32,7 @@ export default function Phone() {
   const { toast } = useToast();
   const deviceRef = useRef<Device | null>(null);
   const callRef = useRef<any>(null);
+  const [, setLocation] = useLocation();
 
   // Fetch Twilio access token
   const { data: tokenData, isLoading: tokenLoading, error: tokenError } = useQuery<VoiceToken>({
@@ -183,6 +185,10 @@ export default function Phone() {
     setPhoneNumber(prev => prev.slice(0, -1));
   };
 
+  const goBack = () => {
+    setLocation("/");
+  };
+
   if (tokenLoading) {
     return (
       <div className="p-6">
@@ -203,9 +209,20 @@ export default function Phone() {
     <div className="p-6 max-w-md mx-auto">
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center space-x-2">
-            <PhoneIcon className="h-5 w-5 text-red-500" />
-            <span>Phone</span>
+          <CardTitle className="flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <PhoneIcon className="h-5 w-5 text-red-500" />
+              <span>Phone</span>
+            </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={goBack}
+              className="p-2"
+              data-testid="button-go-back"
+            >
+              <ArrowLeft className="h-5 w-5" />
+            </Button>
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
