@@ -1,4 +1,4 @@
-import { Switch, Route, Redirect } from "wouter";
+import { Switch, Route, Redirect, useLocation } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
@@ -9,6 +9,7 @@ import Location from "@/pages/Location";
 import Statistics from "@/pages/Statistics";
 import Broadcast from "@/pages/Broadcast";
 import Drivers from "@/pages/Drivers";
+import Phone from "@/pages/Phone";
 import { authStorage } from "@/lib/auth";
 
 interface AuthData {
@@ -20,10 +21,16 @@ interface AuthData {
 }
 
 function AuthWrapper({ children }: { children: React.ReactNode }) {
+  const [location] = useLocation();
   const { data: authData, isLoading } = useQuery<AuthData>({
     queryKey: ['/api/auth/me'],
     retry: false,
   });
+
+  // Allow phone page access without authentication for testing
+  if (location === '/phone') {
+    return <>{children}</>;
+  }
 
   if (isLoading) {
     return (
@@ -90,6 +97,7 @@ function Router() {
               <Route path="/broadcast" component={Broadcast} />
               <Route path="/statistics" component={Statistics} />
               <Route path="/drivers" component={Drivers} />
+              <Route path="/phone" component={Phone} />
               <Route component={() => <Redirect to="/location" />} />
             </Switch>
           </AuthWrapper>

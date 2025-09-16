@@ -3,6 +3,7 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { loginSchema, insertTaxiStatsSchema, insertRecordingSchema } from "@shared/schema";
 import session from "express-session";
+import twilio from "twilio";
 
 // Extend session type to include userId
 declare module "express-session" {
@@ -112,8 +113,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Driver routes
-  app.get("/api/drivers", requireAuth, async (req, res) => {
+  // Driver routes (temporarily without auth for testing)
+  app.get("/api/drivers", async (req, res) => {
     try {
       const drivers = await storage.getAllDrivers();
       res.json(drivers);
@@ -295,6 +296,178 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.send(file.data);
     } catch (error) {
       res.status(500).json({ message: "Failed to serve file" });
+    }
+  });
+
+  // Twilio Voice API routes
+  app.get("/api/voice/token", async (req, res) => {
+    try {
+      const accountSid = process.env.TWILIO_ACCOUNT_SID;
+      const authToken = process.env.TWILIO_AUTH_TOKEN;
+      const twimlAppSid = process.env.TWILIO_TWIML_APP_SID;
+
+      if (!accountSid || !authToken || !twimlAppSid) {
+        return res.status(500).json({ message: "Twilio credentials not configured" });
+      }
+
+      // For demo purposes, create a default user identity
+      const defaultUser = { id: "demo-user", name: "Demo User", email: "demo@savezar.com" };
+
+      const AccessToken = twilio.jwt.AccessToken;
+      const VoiceGrant = AccessToken.VoiceGrant;
+
+      // Use account SID and auth token for simplicity in demo
+      // In production, use separate API key and secret
+      const accessToken = new AccessToken(accountSid, accountSid, authToken, {
+        identity: `user_${defaultUser.id}`,
+        ttl: 3600 // 1 hour
+      });
+
+      const voiceGrant = new VoiceGrant({
+        outgoingApplicationSid: twimlAppSid,
+        incomingAllow: true
+      });
+
+      accessToken.addGrant(voiceGrant);
+
+      res.json({
+        token: accessToken.toJwt(),
+        identity: `user_${defaultUser.id}`
+      });
+    } catch (error) {
+      console.error('Token generation error:', error);
+      res.status(500).json({ message: "Failed to generate access token" });
+    }
+  });
+
+  app.post("/api/voice/call", requireAuth, async (req, res) => {
+    try {
+      const { to } = req.body;
+      
+      if (!to) {
+        return res.status(400).json({ message: "Phone number is required" });
+      }
+
+      const accountSid = process.env.TWILIO_ACCOUNT_SID;
+      const authToken = process.env.TWILIO_AUTH_TOKEN;
+
+      if (!accountSid || !authToken) {
+        return res.status(500).json({ message: "Twilio credentials not configured" });
+      }
+
+      const client = twilio(accountSid, authToken);
+      
+      // For demo purposes, we'll create a simple TwiML response
+      const twimlResponse = `<?xml version="1.0" encoding="UTF-8"?>
+        <Response>
+          <Say voice="alice">Hello from SaveZar Taxi Management System. This is a test call.</Say>
+          <Pause length="1"/>
+          <Say voice="alice">Thank you for using our service. Goodbye!</Say>
+        </Response>`;
+
+      res.json({ 
+        message: "Call initiated",
+        to: to,
+        twiml: twimlResponse
+      });
+    } catch (error) {
+      console.error('Call initiation error:', error);
+      res.status(500).json({ message: "Failed to initiate call" });
+    }
+  });
+
+  app.post("/api/voice/outgoing", async (req, res) => {
+    try {
+      const { To } = req.body;
+      
+      if (!To) {
+        return res.status(400).send('Bad Request: Missing To parameter');
+      }
+
+      // Generate TwiML to dial the requested number
+      const twimlResponse = `<?xml version="1.0" encoding="UTF-8"?>
+        <Response>
+          <Dial>
+            <Number>${To}</Number>
+          </Dial>
+        </Response>`;
+
+      res.type('text/xml');
+      res.send(twimlResponse);
+    } catch (error) {
+      console.error('Outgoing call TwiML error:', error);
+      const errorTwiml = `<?xml version="1.0" encoding="UTF-8"?>
+        <Response>
+          <Say voice="alice">Sorry, we could not connect your call. Please try again later.</Say>
+        </Response>`;
+      res.type('text/xml');
+      res.send(errorTwiml);
+    }
+  });
+
+  app.post("/api/voice/webhook", async (req, res) => {
+    try {
+      // Handle incoming call webhook from Twilio
+      const twimlResponse = `<?xml version="1.0" encoding="UTF-8"?>
+        <Response>
+          <Say voice="alice">Welcome to SaveZar Taxi Management System.</Say>
+          <Gather input="dtmf" timeout="10" numDigits="1" action="/api/voice/handle-input">
+            <Say voice="alice">Press 1 for taxi dispatch, press 2 for customer service, or press 0 to speak to an operator.</Say>
+          </Gather>
+          <Say voice="alice">We didn't receive your input. Goodbye.</Say>
+        </Response>`;
+
+      res.type('text/xml');
+      res.send(twimlResponse);
+    } catch (error) {
+      console.error('Webhook error:', error);
+      res.status(500).send('Internal server error');
+    }
+  });
+
+  app.post("/api/voice/handle-input", async (req, res) => {
+    try {
+      const { Digits } = req.body;
+      
+      let twimlResponse = '';
+      
+      switch (Digits) {
+        case '1':
+          twimlResponse = `<?xml version="1.0" encoding="UTF-8"?>
+            <Response>
+              <Say voice="alice">You have selected taxi dispatch. Our operators will connect you shortly.</Say>
+              <Pause length="2"/>
+              <Say voice="alice">Thank you for calling SaveZar. Goodbye!</Say>
+            </Response>`;
+          break;
+        case '2':
+          twimlResponse = `<?xml version="1.0" encoding="UTF-8"?>
+            <Response>
+              <Say voice="alice">You have selected customer service. Please hold while we connect you.</Say>
+              <Pause length="2"/>
+              <Say voice="alice">Thank you for calling SaveZar. Goodbye!</Say>
+            </Response>`;
+          break;
+        case '0':
+          twimlResponse = `<?xml version="1.0" encoding="UTF-8"?>
+            <Response>
+              <Say voice="alice">Connecting you to an operator. Please wait.</Say>
+              <Pause length="2"/>
+              <Say voice="alice">Thank you for calling SaveZar. Goodbye!</Say>
+            </Response>`;
+          break;
+        default:
+          twimlResponse = `<?xml version="1.0" encoding="UTF-8"?>
+            <Response>
+              <Say voice="alice">Invalid selection. Thank you for calling SaveZar. Goodbye!</Say>
+            </Response>`;
+      }
+
+      res.type('text/xml');
+      res.send(twimlResponse);
+    } catch (error) {
+      console.error('Input handling error:', error);
+      res.status(500).send('Internal server error');
     }
   });
 

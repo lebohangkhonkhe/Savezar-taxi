@@ -5,6 +5,7 @@ const navigationItems = [
   { path: "/broadcast", icon: "fas fa-video", label: "Broadcast" },
   { path: "/statistics", icon: "fas fa-chart-bar", label: "Stats" },
   { path: "/drivers", icon: "fas fa-users", label: "Drivers" },
+  { path: "/phone", icon: "fas fa-phone", label: "Phone" },
 ];
 
 export default function Navigation() {
