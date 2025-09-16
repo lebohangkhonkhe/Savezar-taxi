@@ -5,6 +5,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { useQuery } from "@tanstack/react-query";
 import Login from "@/pages/Login";
+import Home from "@/pages/Home";
 import Location from "@/pages/Location";
 import Statistics from "@/pages/Statistics";
 import Broadcast from "@/pages/Broadcast";
@@ -92,13 +93,13 @@ function Router() {
         <div className="min-h-[600px]">
           <AuthWrapper>
             <Switch>
-              <Route path="/" component={() => <Redirect to="/location" />} />
+              <Route path="/" component={Home} />
               <Route path="/location" component={Location} />
               <Route path="/broadcast" component={Broadcast} />
               <Route path="/statistics" component={Statistics} />
               <Route path="/drivers" component={Drivers} />
               <Route path="/phone" component={Phone} />
-              <Route component={() => <Redirect to="/location" />} />
+              <Route component={() => <Redirect to="/" />} />
             </Switch>
           </AuthWrapper>
         </div>

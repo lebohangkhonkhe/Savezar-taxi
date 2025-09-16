@@ -1,6 +1,7 @@
 import { Link, useLocation } from "wouter";
 
 const navigationItems = [
+  { path: "/", icon: "fas fa-home", label: "Home" },
   { path: "/location", icon: "fas fa-map-marker-alt", label: "Location" },
   { path: "/broadcast", icon: "fas fa-video", label: "Broadcast" },
   { path: "/statistics", icon: "fas fa-chart-bar", label: "Stats" },
