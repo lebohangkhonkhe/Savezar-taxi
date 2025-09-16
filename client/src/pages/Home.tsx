@@ -12,6 +12,7 @@ import {
   LogOut
 } from "lucide-react";
 import { logout } from "@/lib/auth";
+import saveZarLogo from "@assets/Screenshot_20250916_150532_1758027969948.jpg";
 
 const menuItems = [
   {
@@ -86,13 +87,14 @@ export default function Home() {
         </Button>
       </div>
 
-      {/* SaveZar Branding */}
+      {/* SaveZar Logo */}
       <div className="text-center mb-6">
-        <div className="savezar-logo text-3xl mb-1">
-          <div className="logo-icon"></div>
-          SaveZar
-        </div>
-        <p className="text-sm text-muted-foreground">Taxi Management System</p>
+        <img 
+          src={saveZarLogo} 
+          alt="SaveZar Mobile Taxi Monitor" 
+          className="h-20 mx-auto"
+          data-testid="savezar-logo"
+        />
       </div>
 
       {/* Menu Grid - Compact 2x3 Layout */}
