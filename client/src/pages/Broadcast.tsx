@@ -70,10 +70,14 @@ export default function Broadcast() {
           throw new Error('getUserMedia is not supported in this browser');
         }
         
-        // Request camera and microphone permissions
+        // Request camera and microphone permissions - force selfie camera
         const stream = await navigator.mediaDevices.getUserMedia({
-          video: { width: 1280, height: 720 },
-          audio: true
+          video: { 
+            width: 1280, 
+            height: 720,
+            facingMode: { ideal: 'user' } // Use front-facing (selfie) camera
+          },
+          audio: audioRecording
         });
         
         console.log('Media stream obtained:', stream);
@@ -286,10 +290,14 @@ export default function Broadcast() {
               
               {/* Video Overlay */}
               {!isLive && (
-                <div className="absolute inset-0 bg-black/70 flex items-center justify-center" data-testid="video-placeholder">
+                <div 
+                  className="absolute inset-0 bg-black/70 flex items-center justify-center cursor-pointer hover:bg-black/60 transition-colors" 
+                  onClick={handleToggleRecording}
+                  data-testid="video-placeholder"
+                >
                   <div className="text-center text-white">
-                    <i className="fas fa-play text-6xl mb-4"></i>
-                    <p className="text-xl font-semibold">Ready to Broadcast</p>
+                    <i className="fas fa-play text-6xl mb-4 hover:scale-110 transition-transform"></i>
+                    <p className="text-xl font-semibold">Tap to Start Recording</p>
                   </div>
                 </div>
               )}
