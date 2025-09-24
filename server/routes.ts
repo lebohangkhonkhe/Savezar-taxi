@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { loginSchema, insertTaxiStatsSchema, insertRecordingSchema } from "@shared/schema";
+import { loginSchema, registerSchema, insertTaxiStatsSchema, insertRecordingSchema } from "@shared/schema";
 import session from "express-session";
 import twilio from "twilio";
 
@@ -47,6 +47,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({ user: { id: user.id, email: user.email, name: user.name } });
     } catch (error) {
       res.status(400).json({ message: "Invalid request data" });
+    }
+  });
+
+  app.post("/api/auth/register", async (req, res) => {
+    try {
+      const registerData = registerSchema.parse(req.body);
+      
+      // Check if user already exists
+      const existingUser = await storage.getUserByEmail(registerData.email);
+      if (existingUser) {
+        return res.status(409).json({ message: "User already exists with this email" });
+      }
+
+      // Create new user
+      const newUser = await storage.createUser({
+        name: registerData.name,
+        email: registerData.email,
+        password: registerData.password,
+      });
+
+      // Auto-login the user
+      req.session.userId = newUser.id;
+      res.status(201).json({ user: { id: newUser.id, email: newUser.email, name: newUser.name } });
+    } catch (error) {
+      if (error instanceof Error) {
+        console.error('Registration error:', error.message);
+        res.status(400).json({ message: error.message });
+      } else {
+        res.status(400).json({ message: "Invalid request data" });
+      }
     }
   });
 
