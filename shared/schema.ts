@@ -58,6 +58,19 @@ export const recordings = pgTable("recordings", {
   isProcessed: boolean("is_processed").notNull().default(false),
 });
 
+export const availableDrivers = pgTable("available_drivers", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  fullName: text("full_name").notNull(),
+  age: integer("age").notNull(),
+  drivingExperience: integer("driving_experience").notNull(), // in years
+  availability: text("availability").notNull(), // e.g., "Full-time", "Part-time", "Weekends only"
+  phone: text("phone"),
+  email: text("email"),
+  notes: text("notes"),
+  isAvailable: boolean("is_available").notNull().default(true),
+  registeredAt: timestamp("registered_at").defaultNow(),
+});
+
 export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
   createdAt: true,
@@ -81,6 +94,11 @@ export const insertRecordingSchema = createInsertSchema(recordings).omit({
   recordedAt: true,
 });
 
+export const insertAvailableDriverSchema = createInsertSchema(availableDrivers).omit({
+  id: true,
+  registeredAt: true,
+});
+
 export const loginSchema = z.object({
   email: z.string().email(),
   password: z.string().min(1),
@@ -92,16 +110,29 @@ export const registerSchema = z.object({
   password: z.string().min(6, "Password must be at least 6 characters"),
 });
 
+export const availableDriverSchema = z.object({
+  fullName: z.string().min(2, "Full name must be at least 2 characters"),
+  age: z.number().min(18, "Must be at least 18 years old").max(75, "Must be under 75 years old"),
+  drivingExperience: z.number().min(0, "Experience cannot be negative").max(50, "Experience must be realistic"),
+  availability: z.string().min(1, "Please specify availability"),
+  phone: z.string().optional(),
+  email: z.string().email().optional().or(z.literal("")),
+  notes: z.string().optional(),
+});
+
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type InsertDriver = z.infer<typeof insertDriverSchema>;
 export type InsertTaxi = z.infer<typeof insertTaxiSchema>;
 export type InsertTaxiStats = z.infer<typeof insertTaxiStatsSchema>;
 export type InsertRecording = z.infer<typeof insertRecordingSchema>;
+export type InsertAvailableDriver = z.infer<typeof insertAvailableDriverSchema>;
 export type LoginRequest = z.infer<typeof loginSchema>;
 export type RegisterRequest = z.infer<typeof registerSchema>;
+export type AvailableDriverRequest = z.infer<typeof availableDriverSchema>;
 
 export type User = typeof users.$inferSelect;
 export type Driver = typeof drivers.$inferSelect;
 export type Taxi = typeof taxis.$inferSelect;
 export type TaxiStats = typeof taxiStats.$inferSelect;
 export type Recording = typeof recordings.$inferSelect;
+export type AvailableDriver = typeof availableDrivers.$inferSelect;
