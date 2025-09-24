@@ -1,5 +1,5 @@
-import { type User, type InsertUser, type Driver, type InsertDriver, type Taxi, type InsertTaxi, type TaxiStats, type InsertTaxiStats, type Recording, type InsertRecording } from "@shared/schema";
-import { users, drivers, taxis, taxiStats, recordings } from "@shared/schema";
+import { type User, type InsertUser, type Driver, type InsertDriver, type Taxi, type InsertTaxi, type TaxiStats, type InsertTaxiStats, type Recording, type InsertRecording, type AvailableDriver, type InsertAvailableDriver } from "@shared/schema";
+import { users, drivers, taxis, taxiStats, recordings, availableDrivers } from "@shared/schema";
 import { db } from "./db";
 import { eq } from "drizzle-orm";
 
@@ -36,6 +36,13 @@ export interface IStorage {
   createRecording(recording: InsertRecording): Promise<Recording>;
   updateRecording(id: string, updates: Partial<InsertRecording>): Promise<Recording | undefined>;
   deleteRecording(id: string): Promise<boolean>;
+
+  // Available Drivers methods
+  getAvailableDriver(id: string): Promise<AvailableDriver | undefined>;
+  getAllAvailableDrivers(): Promise<AvailableDriver[]>;
+  createAvailableDriver(driver: InsertAvailableDriver): Promise<AvailableDriver>;
+  updateAvailableDriver(id: string, updates: Partial<InsertAvailableDriver>): Promise<AvailableDriver | undefined>;
+  deleteAvailableDriver(id: string): Promise<boolean>;
 
   // File storage methods
   storeFile(filename: string, fileData: Buffer, mimeType: string): Promise<string>; // Returns file URL
@@ -283,6 +290,36 @@ export class DatabaseStorage implements IStorage {
   async deleteRecording(id: string): Promise<boolean> {
     await this.ensureInitialized();
     const [deleted] = await db.delete(recordings).where(eq(recordings.id, id)).returning();
+    return !!deleted;
+  }
+
+  // Available Drivers methods
+  async getAvailableDriver(id: string): Promise<AvailableDriver | undefined> {
+    await this.ensureInitialized();
+    const [driver] = await db.select().from(availableDrivers).where(eq(availableDrivers.id, id));
+    return driver || undefined;
+  }
+
+  async getAllAvailableDrivers(): Promise<AvailableDriver[]> {
+    await this.ensureInitialized();
+    return await db.select().from(availableDrivers);
+  }
+
+  async createAvailableDriver(insertDriver: InsertAvailableDriver): Promise<AvailableDriver> {
+    await this.ensureInitialized();
+    const [driver] = await db.insert(availableDrivers).values(insertDriver).returning();
+    return driver;
+  }
+
+  async updateAvailableDriver(id: string, updates: Partial<InsertAvailableDriver>): Promise<AvailableDriver | undefined> {
+    await this.ensureInitialized();
+    const [driver] = await db.update(availableDrivers).set(updates).where(eq(availableDrivers.id, id)).returning();
+    return driver || undefined;
+  }
+
+  async deleteAvailableDriver(id: string): Promise<boolean> {
+    await this.ensureInitialized();
+    const [deleted] = await db.delete(availableDrivers).where(eq(availableDrivers.id, id)).returning();
     return !!deleted;
   }
 
