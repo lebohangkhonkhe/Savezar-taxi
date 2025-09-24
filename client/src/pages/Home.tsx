@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { logout } from "@/lib/auth";
 import saveZarLogo from "@assets/Screenshot_20250916_150532_1758027969948.jpg";
+import AvailableDrivers from "@/components/AvailableDrivers";
 
 const menuItems = [
   {
@@ -112,6 +113,11 @@ export default function Home() {
             </Card>
           </Link>
         ))}
+      </div>
+
+      {/* Available Drivers Section */}
+      <div className="mb-6">
+        <AvailableDrivers />
       </div>
 
       {/* Quick Stats */}
