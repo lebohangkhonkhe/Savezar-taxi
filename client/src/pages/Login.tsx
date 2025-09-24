@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
-import { loginSchema, type LoginRequest } from "@shared/schema";
+import { loginSchema, registerSchema, type LoginRequest, type RegisterRequest } from "@shared/schema";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -14,10 +14,20 @@ import { authStorage } from "@/lib/auth";
 export default function Login() {
   const { toast } = useToast();
   const [rememberMe, setRememberMe] = useState(false);
+  const [isRegisterMode, setIsRegisterMode] = useState(false);
 
-  const form = useForm<LoginRequest>({
+  const loginForm = useForm<LoginRequest>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
+      email: "",
+      password: "",
+    },
+  });
+
+  const registerForm = useForm<RegisterRequest>({
+    resolver: zodResolver(registerSchema),
+    defaultValues: {
+      name: "",
       email: "",
       password: "",
     },
@@ -46,6 +56,29 @@ export default function Login() {
     },
   });
 
+  const registerMutation = useMutation({
+    mutationFn: async (data: RegisterRequest) => {
+      const response = await apiRequest("POST", "/api/auth/register", data);
+      return response.json();
+    },
+    onSuccess: (data) => {
+      authStorage.setUser(data.user);
+      toast({
+        title: "Registration successful",
+        description: "Welcome to SaveZar! Your account has been created.",
+      });
+      // Force page reload to trigger auth check
+      window.location.reload();
+    },
+    onError: (error) => {
+      toast({
+        title: "Registration failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
   const handleFacebookLogin = () => {
     // Simulate Facebook login success
     const mockUser = {
@@ -61,8 +94,12 @@ export default function Login() {
     window.location.reload();
   };
 
-  const onSubmit = (data: LoginRequest) => {
+  const onLoginSubmit = (data: LoginRequest) => {
     loginMutation.mutate(data);
+  };
+
+  const onRegisterSubmit = (data: RegisterRequest) => {
+    registerMutation.mutate(data);
   };
 
   return (
@@ -103,92 +140,201 @@ export default function Login() {
           
           {/* Form Section */}
           <div className="w-full max-w-sm">
-            <h2 className="text-xl font-bold text-center mb-8 text-gray-800 dark:text-gray-200 tracking-wider">SIGN IN</h2>
+            {/* Mode Toggle */}
+            <div className="flex rounded-lg bg-gray-300 dark:bg-gray-700 p-1 mb-6">
+              <button
+                type="button"
+                onClick={() => setIsRegisterMode(false)}
+                className={`flex-1 py-2 px-4 rounded-md text-sm font-bold uppercase tracking-wide transition-colors ${
+                  !isRegisterMode
+                    ? "bg-red-600 text-white"
+                    : "text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100"
+                }`}
+                data-testid="button-sign-in-mode"
+              >
+                Sign In
+              </button>
+              <button
+                type="button"
+                onClick={() => setIsRegisterMode(true)}
+                className={`flex-1 py-2 px-4 rounded-md text-sm font-bold uppercase tracking-wide transition-colors ${
+                  isRegisterMode
+                    ? "bg-red-600 text-white"
+                    : "text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100"
+                }`}
+                data-testid="button-sign-up-mode"
+              >
+                Sign Up
+              </button>
+            </div>
+
+            <h2 className="text-xl font-bold text-center mb-8 text-gray-800 dark:text-gray-200 tracking-wider">
+              {isRegisterMode ? "CREATE ACCOUNT" : "SIGN IN"}
+            </h2>
             
-            <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                <FormField
-                  control={form.control}
-                  name="email"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-sm font-bold text-gray-800 dark:text-gray-200 uppercase tracking-wide">EMAIL</FormLabel>
-                      <FormControl>
-                        <Input
-                          {...field}
-                          type="email"
-                          placeholder=""
-                          className="w-full px-4 py-4 bg-gray-300 dark:bg-gray-700 border-2 border-gray-400 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-red-600 focus:border-red-600 text-gray-900 dark:text-gray-100 text-base"
-                          data-testid="input-email"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                
-                <FormField
-                  control={form.control}
-                  name="password"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-sm font-bold text-gray-800 dark:text-gray-200 uppercase tracking-wide">PASSWORD</FormLabel>
-                      <FormControl>
-                        <Input
-                          {...field}
-                          type="password"
-                          placeholder=""
-                          className="w-full px-4 py-4 bg-gray-300 dark:bg-gray-700 border-2 border-gray-400 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-red-600 focus:border-red-600 text-gray-900 dark:text-gray-100 text-base"
-                          data-testid="input-password"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                
-                <div className="flex items-center my-6">
-                  <Checkbox
-                    checked={rememberMe}
-                    onCheckedChange={(checked) => setRememberMe(checked === true)}
-                    className="w-5 h-5 text-green-600 border-gray-400 dark:border-gray-600 rounded focus:ring-green-600 data-[state=checked]:bg-green-600 data-[state=checked]:border-green-600"
-                    data-testid="checkbox-remember"
+            {!isRegisterMode ? (
+              <Form {...loginForm}>
+                <form onSubmit={loginForm.handleSubmit(onLoginSubmit)} className="space-y-6">
+                  <FormField
+                    control={loginForm.control}
+                    name="email"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-sm font-bold text-gray-800 dark:text-gray-200 uppercase tracking-wide">EMAIL</FormLabel>
+                        <FormControl>
+                          <Input
+                            {...field}
+                            type="email"
+                            placeholder=""
+                            className="w-full px-4 py-4 bg-gray-300 dark:bg-gray-700 border-2 border-gray-400 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-red-600 focus:border-red-600 text-gray-900 dark:text-gray-100 text-base"
+                            data-testid="input-email"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
                   />
-                  <label className="ml-3 text-sm font-bold text-gray-800 dark:text-gray-200 uppercase tracking-wide">REMEMBER ME</label>
+                  
+                  <FormField
+                    control={loginForm.control}
+                    name="password"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-sm font-bold text-gray-800 dark:text-gray-200 uppercase tracking-wide">PASSWORD</FormLabel>
+                        <FormControl>
+                          <Input
+                            {...field}
+                            type="password"
+                            placeholder=""
+                            className="w-full px-4 py-4 bg-gray-300 dark:bg-gray-700 border-2 border-gray-400 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-red-600 focus:border-red-600 text-gray-900 dark:text-gray-100 text-base"
+                            data-testid="input-password"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                
+                  <div className="flex items-center my-6">
+                    <Checkbox
+                      checked={rememberMe}
+                      onCheckedChange={(checked) => setRememberMe(checked === true)}
+                      className="w-5 h-5 text-green-600 border-gray-400 dark:border-gray-600 rounded focus:ring-green-600 data-[state=checked]:bg-green-600 data-[state=checked]:border-green-600"
+                      data-testid="checkbox-remember"
+                    />
+                    <label className="ml-3 text-sm font-bold text-gray-800 dark:text-gray-200 uppercase tracking-wide">REMEMBER ME</label>
+                  </div>
+                  
+                  <Button
+                    type="submit"
+                    disabled={loginMutation.isPending}
+                    className="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-4 rounded-md mt-6 text-base uppercase tracking-wide"
+                    data-testid="button-login"
+                  >
+                    {loginMutation.isPending ? "SIGNING IN..." : "SIGN IN"}
+                  </Button>
+                </form>
+              </Form>
+            ) : (
+              <Form {...registerForm}>
+                <form onSubmit={registerForm.handleSubmit(onRegisterSubmit)} className="space-y-6">
+                  <FormField
+                    control={registerForm.control}
+                    name="name"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-sm font-bold text-gray-800 dark:text-gray-200 uppercase tracking-wide">FULL NAME</FormLabel>
+                        <FormControl>
+                          <Input
+                            {...field}
+                            type="text"
+                            placeholder=""
+                            className="w-full px-4 py-4 bg-gray-300 dark:bg-gray-700 border-2 border-gray-400 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-red-600 focus:border-red-600 text-gray-900 dark:text-gray-100 text-base"
+                            data-testid="input-name"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={registerForm.control}
+                    name="email"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-sm font-bold text-gray-800 dark:text-gray-200 uppercase tracking-wide">EMAIL</FormLabel>
+                        <FormControl>
+                          <Input
+                            {...field}
+                            type="email"
+                            placeholder=""
+                            className="w-full px-4 py-4 bg-gray-300 dark:bg-gray-700 border-2 border-gray-400 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-red-600 focus:border-red-600 text-gray-900 dark:text-gray-100 text-base"
+                            data-testid="input-email-register"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={registerForm.control}
+                    name="password"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-sm font-bold text-gray-800 dark:text-gray-200 uppercase tracking-wide">PASSWORD</FormLabel>
+                        <FormControl>
+                          <Input
+                            {...field}
+                            type="password"
+                            placeholder=""
+                            className="w-full px-4 py-4 bg-gray-300 dark:bg-gray-700 border-2 border-gray-400 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-red-600 focus:border-red-600 text-gray-900 dark:text-gray-100 text-base"
+                            data-testid="input-password-register"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <Button
+                    type="submit"
+                    disabled={registerMutation.isPending}
+                    className="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-4 rounded-md mt-6 text-base uppercase tracking-wide"
+                    data-testid="button-register"
+                  >
+                    {registerMutation.isPending ? "CREATING ACCOUNT..." : "CREATE ACCOUNT"}
+                  </Button>
+                </form>
+              </Form>
+            )}
+            
+            {!isRegisterMode && (
+              <>
+                {/* OR Divider */}
+                <div className="text-center my-8">
+                  <p className="text-2xl font-bold text-gray-600 dark:text-gray-400 tracking-widest">OR</p>
                 </div>
                 
-                <Button
-                  type="submit"
-                  disabled={loginMutation.isPending}
-                  className="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-4 rounded-md mt-6 text-base uppercase tracking-wide"
-                  data-testid="button-login"
+                {/* Facebook Button */}
+                <Button 
+                  onClick={handleFacebookLogin}
+                  className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-md mb-6 flex items-center justify-center text-base uppercase tracking-wide"
+                  data-testid="button-facebook"
                 >
-                  {loginMutation.isPending ? "SIGNING IN..." : "SIGN IN"}
+                  <i className="fab fa-facebook-f mr-3 text-lg"></i>
+                  CONNECT WITH FACEBOOK
                 </Button>
-              </form>
-            </Form>
-            
-            {/* OR Divider */}
-            <div className="text-center my-8">
-              <p className="text-2xl font-bold text-gray-600 dark:text-gray-400 tracking-widest">OR</p>
-            </div>
-            
-            {/* Facebook Button */}
-            <Button 
-              onClick={handleFacebookLogin}
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-md mb-6 flex items-center justify-center text-base uppercase tracking-wide"
-              data-testid="button-facebook"
-            >
-              <i className="fab fa-facebook-f mr-3 text-lg"></i>
-              CONNECT WITH FACEBOOK
-            </Button>
-            
-            {/* Forgot Password Link */}
-            <p className="text-center text-sm text-gray-600 dark:text-gray-400 uppercase tracking-wide">
-              <a href="#" className="text-gray-700 dark:text-gray-300 hover:text-red-600 dark:hover:text-red-400 font-bold" data-testid="link-forgot-password">
-                FORGOT PASSWORD?
-              </a>
-            </p>
+                
+                {/* Forgot Password Link */}
+                <p className="text-center text-sm text-gray-600 dark:text-gray-400 uppercase tracking-wide">
+                  <a href="#" className="text-gray-700 dark:text-gray-300 hover:text-red-600 dark:hover:text-red-400 font-bold" data-testid="link-forgot-password">
+                    FORGOT PASSWORD?
+                  </a>
+                </p>
+              </>
+            )}
           </div>
         </div>
       </div>
