@@ -17,6 +17,7 @@ import { UserPlus, Phone, Mail, Clock, Star, Trash2 } from "lucide-react";
 
 export default function AvailableDrivers() {
   const [showForm, setShowForm] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(false);
   const { toast } = useToast();
 
   const { data: availableDrivers = [], isLoading } = useQuery<AvailableDriver[]>({
@@ -94,21 +95,37 @@ export default function AvailableDrivers() {
     <Card className="bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-gray-800 dark:to-gray-900 border-indigo-200 dark:border-gray-700">
       <CardHeader className="pb-4">
         <div className="flex items-center justify-between">
-          <CardTitle className="text-xl font-bold text-indigo-700 dark:text-indigo-300 flex items-center gap-2">
-            <UserPlus className="h-6 w-6" />
-            Available Drivers
-          </CardTitle>
-          <Button
-            onClick={() => setShowForm(!showForm)}
-            className="bg-indigo-600 hover:bg-indigo-700 text-white"
-            data-testid="button-toggle-form"
+          <div 
+            className="flex items-center gap-2 cursor-pointer hover:opacity-75 transition-opacity"
+            onClick={() => setIsExpanded(!isExpanded)}
+            data-testid="icon-available-drivers"
           >
-            {showForm ? "Cancel" : "Register"}
-          </Button>
+            <div className="p-3 rounded-lg bg-indigo-100 dark:bg-indigo-900">
+              <UserPlus className="h-8 w-8 text-indigo-600 dark:text-indigo-400" />
+            </div>
+            <div>
+              <CardTitle className="text-xl font-bold text-indigo-700 dark:text-indigo-300">
+                Available Drivers
+              </CardTitle>
+              <p className="text-sm text-indigo-600 dark:text-indigo-400">
+                {availableDrivers.length} driver{availableDrivers.length !== 1 ? 's' : ''} available
+              </p>
+            </div>
+          </div>
+          {isExpanded && (
+            <Button
+              onClick={() => setShowForm(!showForm)}
+              className="bg-indigo-600 hover:bg-indigo-700 text-white"
+              data-testid="button-toggle-form"
+            >
+              {showForm ? "Cancel" : "Register"}
+            </Button>
+          )}
         </div>
       </CardHeader>
 
-      <CardContent className="space-y-4">
+      {isExpanded && (
+        <CardContent className="space-y-4">
         {showForm && (
           <Card className="border-indigo-200 dark:border-gray-600">
             <CardHeader className="pb-3">
@@ -365,6 +382,7 @@ export default function AvailableDrivers() {
           )}
         </div>
       </CardContent>
+      )}
     </Card>
   );
 }
