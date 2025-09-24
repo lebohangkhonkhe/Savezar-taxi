@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { loginSchema, registerSchema, insertTaxiStatsSchema, insertRecordingSchema } from "@shared/schema";
+import { loginSchema, registerSchema, insertTaxiStatsSchema, insertRecordingSchema, availableDriverSchema } from "@shared/schema";
 import session from "express-session";
 import twilio from "twilio";
 
@@ -174,6 +174,89 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(driver);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch driver" });
+    }
+  });
+
+  // Available Drivers routes
+  app.get("/api/available-drivers", async (req, res) => {
+    try {
+      const availableDrivers = await storage.getAllAvailableDrivers();
+      res.json(availableDrivers);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch available drivers" });
+    }
+  });
+
+  app.get("/api/available-drivers/:id", async (req, res) => {
+    try {
+      const driver = await storage.getAvailableDriver(req.params.id);
+      if (!driver) {
+        return res.status(404).json({ message: "Available driver not found" });
+      }
+      res.json(driver);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch available driver" });
+    }
+  });
+
+  app.post("/api/available-drivers", async (req, res) => {
+    try {
+      const validation = availableDriverSchema.safeParse(req.body);
+      if (!validation.success) {
+        return res.status(400).json({ 
+          message: "Invalid driver data", 
+          errors: validation.error.errors 
+        });
+      }
+
+      const newDriver = await storage.createAvailableDriver({
+        fullName: validation.data.fullName,
+        age: validation.data.age,
+        drivingExperience: validation.data.drivingExperience,
+        availability: validation.data.availability,
+        phone: validation.data.phone || null,
+        email: validation.data.email || null,
+        notes: validation.data.notes || null,
+        isAvailable: true,
+      });
+
+      res.status(201).json(newDriver);
+    } catch (error) {
+      console.error('Available driver creation error:', error);
+      res.status(500).json({ message: "Failed to register available driver" });
+    }
+  });
+
+  app.patch("/api/available-drivers/:id", async (req, res) => {
+    try {
+      const validation = availableDriverSchema.partial().safeParse(req.body);
+      if (!validation.success) {
+        return res.status(400).json({ 
+          message: "Invalid driver data", 
+          errors: validation.error.errors 
+        });
+      }
+
+      const updatedDriver = await storage.updateAvailableDriver(req.params.id, validation.data);
+      if (!updatedDriver) {
+        return res.status(404).json({ message: "Available driver not found" });
+      }
+
+      res.json(updatedDriver);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to update available driver" });
+    }
+  });
+
+  app.delete("/api/available-drivers/:id", async (req, res) => {
+    try {
+      const deleted = await storage.deleteAvailableDriver(req.params.id);
+      if (!deleted) {
+        return res.status(404).json({ message: "Available driver not found" });
+      }
+      res.json({ message: "Available driver deleted successfully" });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to delete available driver" });
     }
   });
 
