@@ -84,3 +84,54 @@ The API implements proper error handling with structured error responses and val
 - **clsx**: Utility for constructing className strings conditionally
 - **date-fns**: Modern JavaScript date utility library
 - **nanoid**: Secure URL-friendly unique string ID generator
+
+### Mobile App (Capacitor)
+- **@capacitor/core**: Core Capacitor runtime
+- **@capacitor/cli**: CLI tools for building mobile apps
+- **@capacitor/android**: Android platform support
+
+## Android App Publishing
+
+### Configuration
+- **App ID**: com.savezar.taxi
+- **App Name**: SaveZar
+- **Primary Color**: #DC2626 (SaveZar Red)
+- **Web Directory**: dist/public
+
+### Build Commands
+1. Build production version: `npm run build`
+2. Sync with Android: `npx cap sync android`
+3. Open in Android Studio: `npx cap open android`
+
+### Generating Signed APK/AAB for Play Store
+To publish to Google Play Store, you need to create a signed Android App Bundle (AAB):
+
+1. **Download the android folder** from this project to your local machine
+2. **Open in Android Studio**: Import the android folder as an existing project
+3. **Create a signing key**:
+   - Go to Build → Generate Signed Bundle/APK
+   - Select "Android App Bundle"
+   - Click "Create new..." to create a keystore
+   - Fill in the keystore details (keep this file safe!)
+4. **Build the signed AAB**:
+   - Select your keystore and enter credentials
+   - Choose "release" build variant
+   - Click "Finish" to generate the AAB file
+5. **Upload to Play Console**:
+   - Go to play.google.com/console
+   - Create a new app or select existing
+   - Go to Production → Releases → Create new release
+   - Upload the AAB file
+   - Fill in app details, screenshots, and descriptions
+   - Submit for review
+
+### App Icon Requirements
+For Play Store, you need to provide app icons in the following sizes:
+- 48x48 (mdpi)
+- 72x72 (hdpi)
+- 96x96 (xhdpi)
+- 144x144 (xxhdpi)
+- 192x192 (xxxhdpi)
+- 512x512 (Play Store listing)
+
+Replace the default icons in android/app/src/main/res/mipmap-* folders
