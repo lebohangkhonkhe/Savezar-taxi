@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Delete Account - SaveZar</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: linear-gradient(135deg, #DC2626 0%, #991B1B 100%); min-height: 100vh; padding: 20px; }
+        .container { max-width: 600px; margin: 0 auto; background: rgba(255,255,255,0.95); border-radius: 16px; padding: 40px; box-shadow: 0 10px 40px rgba(0,0,0,0.2); }
+        h1 { color: #DC2626; margin-bottom: 8px; font-size: 24px; }
+        .subtitle { color: #666; margin-bottom: 30px; font-size: 14px; }
+        h2 { color: #333; margin: 24px 0 12px; font-size: 16px; }
+        p { color: #555; line-height: 1.7; margin-bottom: 12px; }
+        ul { color: #555; line-height: 1.7; margin-left: 24px; margin-bottom: 12px; }
+        li { margin-bottom: 8px; }
+        form { margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee; }
+        label { display: block; color: #333; font-weight: 500; margin-bottom: 8px; font-size: 14px; }
+        input, textarea { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; margin-bottom: 16px; }
+        input:focus, textarea:focus { outline: none; border-color: #DC2626; }
+        button { width: 100%; padding: 14px; background: #DC2626; color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: 500; cursor: pointer; }
+        button:hover { background: #B91C1C; }
+        .success { display: none; text-align: center; padding: 40px 20px; }
+        .success svg { width: 64px; height: 64px; color: #22C55E; margin-bottom: 20px; }
+        .success h2 { color: #333; margin-bottom: 12px; }
+        .info-box { background: #f5f5f5; padding: 16px; border-radius: 8px; margin-top: 16px; }
+        .info-box p { margin: 4px 0; font-size: 14px; }
+        .footer { text-align: center; margin-top: 20px; padding-top: 20px; border-top: 1px solid #eee; }
+        .footer a { color: #DC2626; text-decoration: none; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div id="form-section">
+            <h1>Account & Data Deletion Request</h1>
+            <p class="subtitle">SaveZar Taxi Management</p>
+            
+            <h2>Request Account Deletion</h2>
+            <p>You have the right to request the deletion of your account and all associated personal data. Once we receive your request, we will:</p>
+            <ul>
+                <li>Verify your identity using the email address provided</li>
+                <li>Delete your account and personal information within 30 days</li>
+                <li>Send you a confirmation email once the deletion is complete</li>
+            </ul>
+            
+            <h2>What Data Will Be Deleted</h2>
+            <ul>
+                <li>Your user account and login credentials</li>
+                <li>Personal information (name, email, phone number)</li>
+                <li>Driver profile data (if applicable)</li>
+                <li>Location history and tracking data</li>
+                <li>Usage statistics and preferences</li>
+            </ul>
+            
+            <h2>Data That May Be Retained</h2>
+            <p>Some data may be retained for legal compliance or legitimate business purposes:</p>
+            <ul>
+                <li>Transaction records (as required by law)</li>
+                <li>Anonymized statistical data</li>
+                <li>Data necessary for legal claims or disputes</li>
+            </ul>
+            
+            <form id="deletion-form">
+                <h2>Submit Deletion Request</h2>
+                <label for="email">Email Address *</label>
+                <input type="email" id="email" placeholder="Enter the email associated with your account" required>
+                
+                <label for="reason">Reason for Deletion (Optional)</label>
+                <textarea id="reason" rows="3" placeholder="Please let us know why you're leaving (optional)"></textarea>
+                
+                <button type="submit">Submit Deletion Request</button>
+            </form>
+        </div>
+        
+        <div class="success" id="success-section">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <h2>Request Received</h2>
+            <p>Your account deletion request has been submitted successfully.</p>
+            <div class="info-box">
+                <p><strong>Email:</strong> <span id="submitted-email"></span></p>
+                <p><strong>Processing Time:</strong> Up to 30 days</p>
+                <p>You will receive a confirmation email once your account and data have been deleted.</p>
+            </div>
+            <p style="margin-top: 20px; font-size: 14px; color: #666;">If you have any questions, please contact us at <strong>support@savezar.com</strong></p>
+        </div>
+        
+        <div class="footer">
+            <p style="font-size: 14px; color: #666;">For more information, see our <a href="privacy.html">Privacy Policy</a></p>
+        </div>
+    </div>
+    
+    <script>
+        document.getElementById('deletion-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            var email = document.getElementById('email').value;
+            document.getElementById('submitted-email').textContent = email;
+            document.getElementById('form-section').style.display = 'none';
+            document.getElementById('success-section').style.display = 'block';
+        });
+    </script>
+</body>
+</html>
