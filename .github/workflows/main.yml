@@ -1,4 +1,3 @@
-.github/workflows/build-android.yml
 name: Build Android AAB
 
 on:
