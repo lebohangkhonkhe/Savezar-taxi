@@ -13,12 +13,29 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
       
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+        
     - name: Setup Java 21
       uses: actions/setup-java@v4
       with:
         distribution: 'temurin'
         java-version: '21'
         
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Create dummy web assets
+      run: |
+        mkdir -p dist/public
+        echo '<html><body>Loading...</body></html>' > dist/public/index.html
+        
+    - name: Sync Capacitor
+      run: npx cap sync android
+      
     - name: Setup Android SDK
       uses: android-actions/setup-android@v3
       
