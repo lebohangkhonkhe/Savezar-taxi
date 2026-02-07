@@ -32,6 +32,8 @@ jobs:
       run: |
         mkdir -p dist/public
         echo '<html><body>Loading...</body></html>' > dist/public/index.html
+        mkdir -p www
+        echo '<html><body>Loading...</body></html>' > www/index.html
         
     - name: Sync Capacitor
       run: npx cap sync android
