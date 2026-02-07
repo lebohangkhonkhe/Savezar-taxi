@@ -38,6 +38,12 @@ jobs:
     - name: Sync Capacitor
       run: npx cap sync android
       
+    - name: Fix Kotlin version conflicts
+      run: |
+        find android -name "kotlin-stdlib-jdk7-1.6.21.jar" -delete 2>/dev/null || true
+        find android -name "kotlin-stdlib-jdk8-1.6.21.jar" -delete 2>/dev/null || true
+        find android -path "*/capacitor-cordova-android-plugins/*" -name "*.gradle" -exec sed -i 's/kotlin-stdlib-jdk7/kotlin-stdlib/g; s/kotlin-stdlib-jdk8/kotlin-stdlib/g' {} \; 2>/dev/null || true
+      
     - name: Setup Android SDK
       uses: android-actions/setup-android@v3
       
