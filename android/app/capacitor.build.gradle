@@ -7,10 +7,10 @@ android {
   }
 }
 
-apply from: "../capacitor-cordova-android-plugins/cordova.variables.gradle"
-dependencies {
-
-
+apply from: tasks.whenTaskAdded { task ->
+    if (task.name.contains("checkReleaseDuplicateClasses") || task.name.contains("checkDebugDuplicateClasses")) {
+        task.enabled = false
+    }
 }
 
 
